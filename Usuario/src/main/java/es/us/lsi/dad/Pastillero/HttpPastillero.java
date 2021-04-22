@@ -31,7 +31,6 @@ Vertx vertx;
 		String pastilleroId = routingContext.request().getParam("pastilleroid");
 		vertx.eventBus().request("deletePastillero", pastilleroId, reply -> {
 			if (reply.succeeded()) {
-				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {
