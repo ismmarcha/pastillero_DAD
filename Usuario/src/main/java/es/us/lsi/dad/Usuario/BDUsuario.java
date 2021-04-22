@@ -18,14 +18,15 @@ public class BDUsuario {
 	}
 
 	public void iniciarConsumersBDUsuario() {
-		getUsers();
-		deleteUser();
-		addUser();
-		editUser();
+		getUsuarios();
+		getUsuarioNIF();
+		deleteUsuario();
+		addUsuario();
+		editUsuario();
 	}
 	
-	public void getUsers() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("getUsers");
+	public void getUsuarios() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getUsuarios");
 		consumer.handler(message -> {
 			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Usuario;");
 			query.execute(res -> {
@@ -35,9 +36,9 @@ public class BDUsuario {
 						UsuarioImpl usuario = new UsuarioImpl();
 						usuario.setName((String) v.getValue("firstname"));
 						usuario.setSurname((String) v.getValue("lastname"));
-						String id = "" + v.getValue("id");
+						String nif = "" + v.getValue("NIF");
 						System.out.println(json);
-						json.put(String.valueOf(v.getValue("id")), v.toJson());
+						json.put(String.valueOf(v.getValue("NIF")), v.toJson());
 					});
 				} else {
 					json.put("error", String.valueOf(res.cause()));
@@ -46,16 +47,39 @@ public class BDUsuario {
 			});
 		});
 	}
-
-	public void deleteUser() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("deleteUser");
+	
+	public void getUsuarioNIF() {
+		
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getUsuarioNIF");
 		consumer.handler(message -> {
-			String userid = message.body();
+			String usuarionif = message.body();
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Usuario WHERE NIF = '"+ usuarionif + "';");
+			
+			query.execute(res -> {
+				JsonObject json = new JsonObject();
+				
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						json.put(String.valueOf(v.getValue("NIF")), v.toJson());
+					});
+				} else {
+					json.put("No existe usuario con ese NIF", String.valueOf(res.cause()));
+					
+				}
+				message.reply(json);
+			});
+		});
+	}
+	
+	public void deleteUsuario() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("deleteUsuario");
+		consumer.handler(message -> {
+			String usuarionif = message.body();
 			Query<RowSet<Row>> query = mySqlClient
-					.query("DELETE FROM pastillero_dad.Usuario WHERE id = " + userid + ";");
+					.query("DELETE FROM pastillero_dad.Usuario WHERE NIF = '" + usuarionif + "';");
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Borrado del usuario " + userid);
+					message.reply("Borrado del usuario " + usuarionif);
 				} else {
 					message.reply("ERROR AL BORRAR EL USUARIO " + res.cause());
 				}
@@ -64,19 +88,19 @@ public class BDUsuario {
 		});
 	}
 
-	public void addUser() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("addUser");
+	public void addUsuario() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("addUsuario");
 		consumer.handler(message -> {
 			JsonObject jsonNewUsuario = new JsonObject(message.body());
-			UsuarioImpl newUser = new UsuarioImpl();
-			newUser.setName(jsonNewUsuario.getString("firstname"));
-			newUser.setSurname(jsonNewUsuario.getString("lastname"));
+			UsuarioImpl newUsuario = new UsuarioImpl();
+			newUsuario.setName(jsonNewUsuario.getString("firstname"));
+			newUsuario.setSurname(jsonNewUsuario.getString("lastname"));
 			Query<RowSet<Row>> query = mySqlClient
-					.query("INSERT INTO pastillero_dad.Usuario(firstname, lastname) VALUES ('" + newUser.getName()
-							+ "','" + newUser.getSurname() + "');");
+					.query("INSERT INTO pastillero_dad.Usuario(firstname, lastname) VALUES ('" + newUsuario.getName()
+							+ "','" + newUsuario.getSurname() + "');");
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Añadido el usuario " + newUser.getName());
+					message.reply("Añadido el usuario " + newUsuario.getName());
 				} else {
 					message.reply("ERROR AL AÑADIR EL USUARIO " + res.cause());
 				}
@@ -85,20 +109,20 @@ public class BDUsuario {
 		});
 	}
 
-	public void editUser() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("editUser");
+	public void editUsuario() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("editUsuario");
 		consumer.handler(message -> {
-			System.out.println("edituser " + message.body());
+			System.out.println("editusuario " + message.body());
 			JsonObject jsonEditUsuario = new JsonObject(message.body());
-			String userid = jsonEditUsuario.getString("userid");
-			UsuarioImpl editUser = new UsuarioImpl();
-			editUser.setName(jsonEditUsuario.getString("firstname"));
-			editUser.setSurname(jsonEditUsuario.getString("lastname"));
+			String usuarionif = jsonEditUsuario.getString("usuarionif");
+			UsuarioImpl editUsuario = new UsuarioImpl();
+			editUsuario.setName(jsonEditUsuario.getString("firstname"));
+			editUsuario.setSurname(jsonEditUsuario.getString("lastname"));
 			Query<RowSet<Row>> query = mySqlClient.query("UPDATE pastillero_dad.Usuario SET firstname = '"
-					+ editUser.getName() + "', lastname = '" + editUser.getSurname() + "' WHERE id = " + userid);
+					+ editUsuario.getName() + "', lastname = '" + editUsuario.getSurname() + "' WHERE NIF = " + usuarionif);
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Editado el usuario " + editUser.getName());
+					message.reply("Editado el usuario " + editUsuario.getName());
 				} else {
 					message.reply("ERROR AL EDITAR EL USUARIO " + res.cause());
 				}

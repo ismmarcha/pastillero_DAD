@@ -4,6 +4,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+/*
+ * 1- Obtener usuario por NIF  WIN
+ * 2- Poner todas las funciones coherentes y constantes
+ * 3- Consultas adaptables (Sobretodo editar)
+ * 4- Usuarios a cargo de otro usuario
+ */
 public class HttpUsuario {
 	Vertx vertx;
 	
@@ -11,10 +17,26 @@ public class HttpUsuario {
 		this.vertx = vertx;
 	}
 
-	public void getUsers(RoutingContext routingContext) {
+	public void getUsuarios(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
-		vertx.eventBus().request("getUsers", "getUsers", reply -> {
+		vertx.eventBus().request("getUsuarios", "getUsuarios", reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			}
+		});
+	}
+	
+	public void getUsuarioNIF(RoutingContext routingContext) {
+		
+		String usuarionif = routingContext.request().getParam("usuarionif");
+		System.out.println(usuarionif);
+		vertx.eventBus().request("getUsuarioNIF", usuarionif, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
@@ -26,10 +48,10 @@ public class HttpUsuario {
 		});
 	}
 
-	public void deleteUser(RoutingContext routingContext) {
+	public void deleteUsuario(RoutingContext routingContext) {
 		// Obtenemos el id del usuario contenido en la propia URL de la petición
-		String userid = routingContext.request().getParam("userid");
-		vertx.eventBus().request("deleteUser", userid, reply -> {
+		String usuarionif = routingContext.request().getParam("usuarionif");
+		vertx.eventBus().request("deleteUsuario", usuarionif, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
@@ -41,10 +63,10 @@ public class HttpUsuario {
 		});
 	}
 
-	public void addUser(RoutingContext routingContext) {
+	public void addUsuario(RoutingContext routingContext) {
 		// Añadimos un usuario utilizando los datos que están dentro del body de la
 		// petición. IMPORTANTE: USAR EL BODY EN POSTMAN DE TIPO RAW
-		vertx.eventBus().request("addUser", routingContext.getBodyAsString(), reply -> {
+		vertx.eventBus().request("addUsuario", routingContext.getBodyAsString(), reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
@@ -56,14 +78,14 @@ public class HttpUsuario {
 		});
 	}
 
-	public void editUser(RoutingContext routingContext) {
-		String userid = routingContext.request().getParam("userid");
+	public void editUsuario(RoutingContext routingContext) {
+		String usuarionif = routingContext.request().getParam("usuarionif");
 		// Creamos un objeto JSON de los datos a modificar del usuario
 		JsonObject json = routingContext.getBodyAsJson();
 		// Añadimos a dicho JSON el userid para poder saber que usuario queremos
 		// modificar.
-		json.put("userid", userid);
-		vertx.eventBus().request("editUser", json.toString(), reply -> {
+		json.put("usuarionif", usuarionif);
+		vertx.eventBus().request("editUsuario", json.toString(), reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")

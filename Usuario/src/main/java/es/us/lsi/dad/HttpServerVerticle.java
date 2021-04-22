@@ -30,7 +30,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 		iniciarRouterPastillero();
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
-		httpServer.requestHandler(router::handle).listen(8080, res -> {
+		httpServer.requestHandler(router::handle).listen(8084, res -> {
 			if (res.succeeded()) {
 				startFuture.complete();
 			} else {
@@ -41,11 +41,12 @@ public class HttpServerVerticle extends AbstractVerticle {
 	
 	private void iniciarRouterUsuario() {
 		HttpUsuario httpUsuario = new HttpUsuario(vertx);
-		router.route("/api/users/*").handler(BodyHandler.create());
-		router.get("/api/users").handler(httpUsuario::getUsers);
-		router.post("/api/users/addUser").handler(httpUsuario::addUser);
-		router.put("/api/users/editUser/:userid").handler(httpUsuario::editUser);
-		router.delete("/api/users/:userid").handler(httpUsuario::deleteUser);
+		router.route("/api/usuarios/*").handler(BodyHandler.create());
+		router.get("/api/usuarios").handler(httpUsuario::getUsuarios);
+		router.get("/api/usuarios/getUsuarioNif/:usuarionif").handler(httpUsuario::getUsuarioNIF);
+		router.post("/api/usuarios/addUsuario").handler(httpUsuario::addUsuario);
+		router.put("/api/usuarios/editUsuario/:usuarionif").handler(httpUsuario::editUsuario);
+		router.delete("/api/usuarios/:usuarionif").handler(httpUsuario::deleteUsuario);
 	}
 	
 	private void iniciarRouterPastillero() {
