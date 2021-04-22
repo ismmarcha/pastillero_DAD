@@ -44,6 +44,22 @@ Vertx vertx;
 	}
 
 
+	public void getPastillero(RoutingContext routingContext) {
+		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
+		// a la petición REST. Así igual con el resto
+		String pastilleroId = routingContext.request().getParam("pastilleroid");
+		vertx.eventBus().request("getPastillero", pastilleroId, reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			}
+		});
+	}
+	
 	public void deletePastillero(RoutingContext routingContext) {
 		// Obtenemos el id del usuario contenido en la propia URL de la petición
 		String pastilleroId = routingContext.request().getParam("pastilleroid");
