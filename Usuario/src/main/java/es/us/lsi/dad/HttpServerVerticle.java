@@ -28,9 +28,10 @@ public class HttpServerVerticle extends AbstractVerticle {
 		router = Router.router(vertx);
 		iniciarRouterUsuario();
 		iniciarRouterPastillero();
+		
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
-		httpServer.requestHandler(router::handle).listen(8084, res -> {
+		httpServer.requestHandler(router::handle).listen(8080, res -> {
 			if (res.succeeded()) {
 				startFuture.complete();
 			} else {
@@ -53,6 +54,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 		HttpPastillero httpPastillero = new HttpPastillero(vertx);
 		router.route("/api/pastilleros/*").handler(BodyHandler.create());
 		router.get("/api/pastilleros").handler(httpPastillero::getPastilleros);
+		router.get("/api/pastilleros/getPastilleroId/:pastilleroid").handler(httpPastillero::getPastillero);
 		router.post("/api/pastilleros/addPastillero").handler(httpPastillero::addPastillero);
 		router.put("/api/pastilleros/editPastillero/:pastilleroid").handler(httpPastillero::editPastillero);
 		router.delete("/api/pastilleros/:pastilleroid").handler(httpPastillero::deletePastillero);

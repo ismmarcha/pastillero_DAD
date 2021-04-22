@@ -48,6 +48,29 @@ public class BDPastillero {
 			});
 		});
 	}
+	
+	public void getPastillero() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getPastillero");
+		consumer.handler(message -> {
+			String pastilleroId = message.body();
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad. WHERE id_pastillero = '"+pastilleroId+"';");
+			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						JsonObject pastilleroJson = new JsonObject();
+						pastilleroJson.put("id_pastillero", String.valueOf(v.getValue("id_pastillero")));
+						pastilleroJson.put("alias", String.valueOf(v.getValue("alias")));
+						resultadoJson.put(String.valueOf(v.getValue("id_pastillero")), pastilleroJson);
+					});
+				} else {
+					resultadoJson.put("error", String.valueOf(res.cause()));
+				}
+				message.reply(resultadoJson);
+			});
+		});
+	}
+
 
 	public void deletePastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("deletePastillero");
