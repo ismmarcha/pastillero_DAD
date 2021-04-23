@@ -1,2 +1,3 @@
 pom.properties
 Usuario/target/classes/META-INF/maven/es.us.lsi.dad/rest/pom.properties
+*.properties
