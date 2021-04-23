@@ -2,13 +2,24 @@ package es.us.lsi.dad.Dosis;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 
 public class HttpDosis {
 	Vertx vertx;
 
 	public HttpDosis(Vertx vertx) {
 		this.vertx = vertx;
+	}
+	
+	public void iniciarRouterDosis(Router router) {
+		router.route("/api/dosis/*").handler(BodyHandler.create());
+		router.get("/api/dosis").handler(this::getAllDosis);
+		router.get("/api/dosis/getDosis").handler(this::getDosis);
+		router.post("/api/dosis/addDosis").handler(this::addDosis);
+		router.put("/api/dosis/editDosis").handler(this::editDosis);
+		router.delete("/api/dosis").handler(this::deleteDosis);
 	}
 
 	public void getAllDosis(RoutingContext routingContext) {

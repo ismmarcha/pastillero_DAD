@@ -2,7 +2,9 @@ package es.us.lsi.dad.Pastillero;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 
 public class HttpPastillero {
 	Vertx vertx;
@@ -10,7 +12,16 @@ public class HttpPastillero {
 	public HttpPastillero(Vertx vertx) {
 		this.vertx = vertx;
 	}
-
+	
+	public void iniciarRouterPastillero(Router router) {
+		router.route("/api/pastilleros/*").handler(BodyHandler.create());
+		router.get("/api/pastilleros").handler(this::getPastilleros);
+		router.get("/api/pastilleros/getPastilleroId/:pastilleroid").handler(this::getPastillero);
+		router.post("/api/pastilleros/addPastillero").handler(this::addPastillero);
+		router.put("/api/pastilleros/editPastillero/:pastilleroid").handler(this::editPastillero);
+		router.delete("/api/pastilleros/:pastilleroid").handler(this::deletePastillero);
+	}
+	
 	public void getPastilleros(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto

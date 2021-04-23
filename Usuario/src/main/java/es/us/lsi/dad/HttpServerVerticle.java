@@ -27,9 +27,13 @@ public class HttpServerVerticle extends AbstractVerticle {
 		// Creamos el objeto Router que nos permite enlazar peticiones REST a funciones
 		// de nuestro servidor
 		router = Router.router(vertx);
-		iniciarRouterUsuario();
-		iniciarRouterPastillero();
-		iniciarRouterDosis();
+		HttpDosis httpDosis = new HttpDosis(vertx);
+		HttpUsuario httpUsuario = new HttpUsuario(vertx);
+		HttpPastillero httpPastillero = new HttpPastillero(vertx);
+
+		httpDosis.iniciarRouterDosis(router);
+		httpUsuario.iniciarRouterUsuario(router);
+		httpPastillero.iniciarRouterPastillero(router);
 		
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
@@ -41,37 +45,6 @@ public class HttpServerVerticle extends AbstractVerticle {
 			}
 		});
 	}
-	
-	private void iniciarRouterUsuario() {
-		HttpUsuario httpUsuario = new HttpUsuario(vertx);
-		router.route("/api/usuarios/*").handler(BodyHandler.create());
-		router.get("/api/usuarios").handler(httpUsuario::getUsuarios);
-		router.get("/api/usuarios/getUsuarioNif/:usuarionif").handler(httpUsuario::getUsuarioNIF);
-		router.post("/api/usuarios/addUsuario").handler(httpUsuario::addUsuario);
-		router.put("/api/usuarios/editUsuario/:usuarionif").handler(httpUsuario::editUsuario);
-		router.delete("/api/usuarios/:usuarionif").handler(httpUsuario::deleteUsuario);
-	}
-	
-	private void iniciarRouterPastillero() {
-		HttpPastillero httpPastillero = new HttpPastillero(vertx);
-		router.route("/api/pastilleros/*").handler(BodyHandler.create());
-		router.get("/api/pastilleros").handler(httpPastillero::getPastilleros);
-		router.get("/api/pastilleros/getPastilleroId/:pastilleroid").handler(httpPastillero::getPastillero);
-		router.post("/api/pastilleros/addPastillero").handler(httpPastillero::addPastillero);
-		router.put("/api/pastilleros/editPastillero/:pastilleroid").handler(httpPastillero::editPastillero);
-		router.delete("/api/pastilleros/:pastilleroid").handler(httpPastillero::deletePastillero);
-	}
-
-	private void iniciarRouterDosis() {
-		HttpDosis httpDosis = new HttpDosis(vertx);
-		router.route("/api/dosis/*").handler(BodyHandler.create());
-		router.get("/api/dosis").handler(httpDosis::getAllDosis);
-		router.get("/api/dosis/getDosis").handler(httpDosis::getDosis);
-		router.post("/api/dosis/addDosis").handler(httpDosis::addDosis);
-		router.put("/api/dosis/editDosis").handler(httpDosis::editDosis);
-		router.delete("/api/dosis").handler(httpDosis::deleteDosis);
-	}
-
 	
 	@Override
 	public void stop(Promise<Void> startFuture) {

@@ -2,7 +2,9 @@ package es.us.lsi.dad.Usuario;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 
 /*
  * 1- Obtener usuario por NIF  WIN
@@ -17,6 +19,16 @@ public class HttpUsuario {
 		this.vertx = vertx;
 	}
 
+	
+	public void iniciarRouterUsuario(Router router) {
+		router.route("/api/usuarios/*").handler(BodyHandler.create());
+		router.get("/api/usuarios").handler(this::getUsuarios);
+		router.get("/api/usuarios/getUsuarioNif/:usuarionif").handler(this::getUsuarioNIF);
+		router.post("/api/usuarios/addUsuario").handler(this::addUsuario);
+		router.put("/api/usuarios/editUsuario/:usuarionif").handler(this::editUsuario);
+		router.delete("/api/usuarios/:usuarionif").handler(this::deleteUsuario);
+	}
+	
 	public void getUsuarios(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto

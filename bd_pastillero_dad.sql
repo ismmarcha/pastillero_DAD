@@ -17,19 +17,19 @@ CREATE TABLE IF NOT EXISTS Pastillero (
 
 
 CREATE TABLE IF NOT EXISTS Usuario (
-    id_usuario INT UNSIGNED AUTO_INCREMENT,
+    nif VARCHAR(9),
     id_pastillero VARCHAR(20) NOT NULL,
     firstname VARCHAR(30) NOT NULL,
     lastname VARCHAR(30) NOT NULL,
     contraseña VARCHAR(64) NOT NULL,
     email VARCHAR(50) NOT NULL,
     rol VARCHAR(20) CHECK(rol IN ('enfermo', 'administrador','cuidador')) NOT NULL,
-    id_cuidador INT UNSIGNED,
+    id_cuidador VARCHAR(9),
     reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
-    PRIMARY KEY ( id_usuario),
+    PRIMARY KEY ( nif),
     FOREIGN KEY (id_pastillero) REFERENCES Pastillero(id_pastillero) ,
-    FOREIGN KEY (id_cuidador) REFERENCES Usuario(id_usuario) 
+    FOREIGN KEY (id_cuidador) REFERENCES Usuario(nif) 
     
 );
 
@@ -44,14 +44,14 @@ CREATE TABLE IF NOT EXISTS Pastilla (
 
 CREATE TABLE IF NOT EXISTS Dosis (
     id_dosis INT UNSIGNED AUTO_INCREMENT,
-	id_usuario INT UNSIGNED,
+	nif VARCHAR(9),
     hora_inicio VARCHAR(5) NOT NULL,
     dia_semana VARCHAR(9) CHECK(dia_semana IN ('L', 'M', 'X', 'J', 'V', 'S', 'D')),
     observacion VARCHAR(200),
     
      PRIMARY KEY ( id_dosis),
-     FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario) ON DELETE CASCADE,
-     UNIQUE (id_usuario, hora_inicio, dia_semana)
+     FOREIGN KEY (nif) REFERENCES Usuario(nif) ON DELETE CASCADE,
+     UNIQUE (nif, hora_inicio, dia_semana)
     
 );
 
@@ -81,12 +81,12 @@ CREATE TABLE IF NOT EXISTS Registro_Dosis (
 
 insert into Pastillero (id_pastillero , alias) values ('192R5T',"Pastillero papá");
 
-insert into Usuario (id_pastillero,firstname, lastname,contraseña, email, rol) values ("192R5T","Ismael","Mamel","Ismaelito22","admin@admin.es","cuidador");
-insert into Usuario (id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) values ("192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","enfermo","1");
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol) values ("12344","192R5T","Ismael","Mamel","Ismaelito22","admin@admin.es","cuidador");
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) values ("12313","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","enfermo","12344");
 
 insert into Pastilla (nombre,descripcion,peso) values ("Paracetamol","Comprimidos EPG","100");
 
-insert into Dosis (hora_inicio,dia_semana,id_usuario,observacion) values ("15:00","L","1","Recordar cita médica, o recordar que se lo tome en un cierto orden");
+insert into Dosis (hora_inicio,dia_semana,nif,observacion) values ("15:00","L","12344","Recordar cita médica, o recordar que se lo tome en un cierto orden");
 
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","1",0.5);
 
@@ -99,5 +99,6 @@ select * from Dosis;
 
 SELECT * FROM pastillero_dad.Usuario;
 
+SELECT * FROM pastillero_dad.Dosis WHERE nif = 1 AND hora_inicio = '15:00' AND dia_semana = 'L';
 
 

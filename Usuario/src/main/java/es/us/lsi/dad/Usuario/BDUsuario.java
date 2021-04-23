@@ -36,9 +36,9 @@ public class BDUsuario {
 						UsuarioImpl usuario = new UsuarioImpl();
 						usuario.setName((String) v.getValue("firstname"));
 						usuario.setSurname((String) v.getValue("lastname"));
-						String nif = "" + v.getValue("NIF");
+						String nif = "" + v.getValue("nif");
 						System.out.println(json);
-						json.put(String.valueOf(v.getValue("NIF")), v.toJson());
+						json.put(String.valueOf(v.getValue("nif")), v.toJson());
 					});
 				} else {
 					json.put("error", String.valueOf(res.cause()));
