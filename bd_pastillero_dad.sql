@@ -1,14 +1,14 @@
 use pastillero_dad;
 
-DROP TABLE Registro_Dosis;
-DROP TABLE Pastilla_Dosis;
-DROP TABLE Franja_Horaria;
-DROP TABLE Pastilla;
-DROP TABLE Usuario;
-DROP TABLE Pastillero;
+DROP TABLE IF EXISTS Registro_Dosis;
+DROP TABLE IF EXISTS Pastilla_Dosis;
+DROP TABLE IF EXISTS Dosis;
+DROP TABLE IF EXISTS Pastilla;
+DROP TABLE IF EXISTS Usuario;
+DROP TABLE IF EXISTS Pastillero;
 
 
-CREATE TABLE Pastillero (
+CREATE TABLE IF NOT EXISTS Pastillero (
     id_pastillero VARCHAR(20),
     alias VARCHAR(30),
     
@@ -16,7 +16,7 @@ CREATE TABLE Pastillero (
 );
 
 
-CREATE TABLE Usuario (
+CREATE TABLE IF NOT EXISTS Usuario (
     id_usuario INT UNSIGNED AUTO_INCREMENT,
     id_pastillero VARCHAR(20) NOT NULL,
     firstname VARCHAR(30) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE Usuario (
     
 );
 
-CREATE TABLE Pastilla (
+CREATE TABLE IF NOT EXISTS Pastilla (
     id_pastilla INT UNSIGNED AUTO_INCREMENT,
     nombre VARCHAR(40) NOT NULL,
     descripcion VARCHAR(300) NOT NULL,
@@ -42,40 +42,40 @@ CREATE TABLE Pastilla (
      PRIMARY KEY ( id_pastilla)
 );
 
-CREATE TABLE Franja_Horaria (
-    id_franja INT UNSIGNED AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS Dosis (
+    id_dosis INT UNSIGNED AUTO_INCREMENT,
+	id_usuario INT UNSIGNED,
     hora_inicio VARCHAR(5) NOT NULL,
     dia_semana VARCHAR(9) CHECK(dia_semana IN ('L', 'M', 'X', 'J', 'V', 'S', 'D')),
-    id_usuario INT UNSIGNED,
     observacion VARCHAR(200),
     
-     PRIMARY KEY ( id_franja),
+     PRIMARY KEY ( id_dosis),
      FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario) ON DELETE CASCADE,
      UNIQUE (id_usuario, hora_inicio, dia_semana)
     
 );
 
 
-CREATE TABLE Pastilla_Dosis ( 
+CREATE TABLE IF NOT EXISTS Pastilla_Dosis ( 
 	id_pastilla INT UNSIGNED,
-    id_franja INT UNSIGNED,
+    id_dosis INT UNSIGNED,
 	cantidad DOUBLE,
     
 	FOREIGN KEY (id_pastilla) REFERENCES  Pastilla(id_pastilla) ON DELETE CASCADE,
-    FOREIGN KEY (id_franja) REFERENCES Franja_Horaria(id_franja) ON DELETE CASCADE,
+    FOREIGN KEY (id_dosis) REFERENCES Dosis(id_dosis) ON DELETE CASCADE,
     
-    PRIMARY KEY ( id_franja , id_pastilla ) 
+    PRIMARY KEY ( id_dosis , id_pastilla ) 
 );
 
 
-CREATE TABLE Registro_Dosis (
+CREATE TABLE IF NOT EXISTS Registro_Dosis (
     id_registro_dosis INT UNSIGNED AUTO_INCREMENT ,
+	id_dosis INT UNSIGNED,
     fecha_caducidad DATETIME,
     tomada BOOLEAN NOT NULL,
-    id_franja INT UNSIGNED,
     
 	PRIMARY KEY ( id_registro_dosis),
-	FOREIGN KEY (id_franja) REFERENCES Franja_Horaria(id_franja) ON DELETE CASCADE
+	FOREIGN KEY (id_dosis) REFERENCES Dosis(id_dosis) ON DELETE CASCADE
 	
 );
 
@@ -86,14 +86,16 @@ insert into Usuario (id_pastillero,firstname, lastname,contraseña, email, rol,i
 
 insert into Pastilla (nombre,descripcion,peso) values ("Paracetamol","Comprimidos EPG","100");
 
-insert into Franja_Horaria (hora_inicio,dia_semana,id_usuario,observacion) values ("15:00","Lunes","1","Recordar cita médica, o recordar que se lo tome en un cierto orden");
+insert into Dosis (hora_inicio,dia_semana,id_usuario,observacion) values ("15:00","L","1","Recordar cita médica, o recordar que se lo tome en un cierto orden");
 
-insert into Pastilla_Dosis (id_pastilla,id_franja,cantidad) values ("1","1",0.5);
+insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","1",0.5);
 
-insert into Registro_Dosis (fecha_caducidad,tomada,id_franja) values (date(12/12/2021),TRUE,"1");
+insert into Registro_Dosis (fecha_caducidad,tomada,id_dosis) values (date(12/12/2021),TRUE,"1");
 
 
 select * from Pastilla;
+
+select * from Dosis;
 
 SELECT * FROM pastillero_dad.Usuario;
 
