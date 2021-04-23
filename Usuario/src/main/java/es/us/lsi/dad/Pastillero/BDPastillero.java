@@ -23,6 +23,7 @@ public class BDPastillero {
 
 	public void iniciarConsumersBDPastillero() {
 		getPastilleros();
+		getPastillero();
 		deletePastillero();
 		addPastillero();
 		editPastillero();

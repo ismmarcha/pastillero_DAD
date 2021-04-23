@@ -2,6 +2,7 @@ package es.us.lsi.dad;
 
 import com.google.gson.Gson;
 
+import es.us.lsi.dad.Dosis.HttpDosis;
 import es.us.lsi.dad.Pastillero.HttpPastillero;
 import es.us.lsi.dad.Usuario.HttpUsuario;
 import io.vertx.core.AbstractVerticle;
@@ -28,6 +29,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 		router = Router.router(vertx);
 		iniciarRouterUsuario();
 		iniciarRouterPastillero();
+		iniciarRouterDosis();
 		
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
@@ -60,7 +62,17 @@ public class HttpServerVerticle extends AbstractVerticle {
 		router.delete("/api/pastilleros/:pastilleroid").handler(httpPastillero::deletePastillero);
 	}
 
+	private void iniciarRouterDosis() {
+		HttpDosis httpDosis = new HttpDosis(vertx);
+		router.route("/api/dosis/*").handler(BodyHandler.create());
+		router.get("/api/dosis").handler(httpDosis::getAllDosis);
+		router.get("/api/dosis/getDosis").handler(httpDosis::getDosis);
+		router.post("/api/dosis/addDosis").handler(httpDosis::addDosis);
+		router.put("/api/dosis/editDosis").handler(httpDosis::editDosis);
+		router.delete("/api/dosis").handler(httpDosis::deleteDosis);
+	}
 
+	
 	@Override
 	public void stop(Promise<Void> startFuture) {
 		httpServer.close();

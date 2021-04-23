@@ -2,6 +2,7 @@ package es.us.lsi.dad;
 
 import com.google.gson.Gson;
 
+import es.us.lsi.dad.Dosis.BDDosis;
 import es.us.lsi.dad.Pastillero.BDPastillero;
 import es.us.lsi.dad.Usuario.BDUsuario;
 import es.us.lsi.dad.Usuario.UsuarioImpl;
@@ -33,9 +34,11 @@ public class BDVerticle extends AbstractVerticle {
 
 		BDUsuario bdUsuario = new BDUsuario(vertx, mySqlClient);
 		BDPastillero bdPastillero = new BDPastillero(vertx, mySqlClient);
+		BDDosis bdDosis = new BDDosis(vertx, mySqlClient);
 		
 		bdUsuario.iniciarConsumersBDUsuario();
 		bdPastillero.iniciarConsumersBDPastillero();
+		bdDosis.iniciarConsumersBDDosis();
 		
 		startFuture.complete();
 
