@@ -1,7 +1,8 @@
 package es.us.lsi.dad;
 
-import com.google.gson.Gson;
+import com.google.gson.Gson; 
 
+import es.us.lsi.dad.Pastilla.HttpPastilla;
 import es.us.lsi.dad.Dosis.HttpDosis;
 import es.us.lsi.dad.Pastillero.HttpPastillero;
 import es.us.lsi.dad.Usuario.HttpUsuario;
@@ -30,14 +31,16 @@ public class HttpServerVerticle extends AbstractVerticle {
 		HttpDosis httpDosis = new HttpDosis(vertx);
 		HttpUsuario httpUsuario = new HttpUsuario(vertx);
 		HttpPastillero httpPastillero = new HttpPastillero(vertx);
+		HttpPastilla httpPastilla = new HttpPastilla(vertx);
 
 		httpDosis.iniciarRouterDosis(router);
 		httpUsuario.iniciarRouterUsuario(router);
 		httpPastillero.iniciarRouterPastillero(router);
+		httpPastilla.iniciarRouterPastilla(router);
 		
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
-		httpServer.requestHandler(router::handle).listen(8080, res -> {
+		httpServer.requestHandler(router::handle).listen(8085, res -> {
 			if (res.succeeded()) {
 				startFuture.complete();
 			} else {

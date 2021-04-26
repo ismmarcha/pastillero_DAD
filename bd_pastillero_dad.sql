@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS Usuario (
 CREATE TABLE IF NOT EXISTS Pastilla (
     id_pastilla INT UNSIGNED AUTO_INCREMENT,
     nombre VARCHAR(40) NOT NULL,
-    descripcion VARCHAR(300) NOT NULL,
+    descripcion VARCHAR(300) ,
     peso DOUBLE,
     
      PRIMARY KEY ( id_pastilla)
@@ -94,11 +94,14 @@ insert into Registro_Dosis (fecha_caducidad,tomada,id_dosis) values (date(12/12/
 
 
 select * from Pastilla;
-
-select * from Dosis;
+SELECT * FROM pastillero_dad.Pastilla;
+select * from Pastillero;
 
 SELECT * FROM pastillero_dad.Usuario;
 
 SELECT * FROM pastillero_dad.Dosis WHERE nif = 1 AND hora_inicio = '15:00' AND dia_semana = 'L';
+
+
+
 
 

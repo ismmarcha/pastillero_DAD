@@ -2,130 +2,151 @@ package es.us.lsi.dad.Usuario;
 
 import java.util.Date;
 
+import io.vertx.core.json.JsonObject;
+import io.vertx.sqlclient.Row;
+
 public class UsuarioImpl {
 
-	protected Integer idusers;
-	protected String name;
-	protected String surname;
-	protected Date birthdate;
-	protected String username;
-	protected String password;
+	protected String nif;
+	protected String id_pastillero;
+	protected String firstname;
+	protected String lastname;
+	protected String contraseña;
+	protected String email;
+	protected String rol;
+	protected String id_cuidador;
+	protected String reg_date;
 
-	public UsuarioImpl(Integer idusers, String name, String surname, Date birthdate, String username, String password) {
+	public UsuarioImpl(String nif,String id_pastillero, String firstname, String lastname, String contraseña, String email, String rol,
+			String id_cuidador, String reg_date) {
 		super();
-		this.idusers = idusers;
-		this.surname = surname;
-		this.name = name;
-		this.birthdate = birthdate;
-		this.username = username;
-		this.password = password;
+		this.nif = nif;
+		this.id_pastillero = id_pastillero;
+		this.firstname = firstname;
+		this.lastname = lastname;
+		this.contraseña = contraseña;
+		this.email = email;
+		this.rol = rol;
+		this.id_cuidador = id_cuidador;
+		this.reg_date = reg_date;
 	}
 
-	public UsuarioImpl() {
+	public UsuarioImpl(Row v) {
 		super();
-		// TODO Auto-generated constructor stub
+		this.nif = v.getString("nif");
+		this.id_pastillero = v.getString("id_pastillero");
+		this.firstname = v.getString("firstname");
+		this.lastname = v.getString("lastname");
+		this.contraseña = v.getString("contraseña");
+		this.email = v.getString("email");
+		this.rol = v.getString("rol");
+		this.id_cuidador = v.getString("id_cuidador");
+		this.reg_date = v.getString("reg_date");
 	}
 
-	public Integer getIdusers() {
-		return idusers;
+	public UsuarioImpl(String body) {
+		super();
+		JsonObject v = new JsonObject(body);
+		if (v.containsKey("id_pastilla")) {
+			this.nif = v.getString("nif");
+		}
+		this.id_pastillero=v.getString("id_pastillero");
+		this.firstname = v.getString("firstname");
+		this.lastname = v.getString("lastname");
+		this.contraseña = v.getString("contraseña");
+		this.email = v.getString("email");
+		this.rol = v.getString("rol");
+		this.id_cuidador = v.getString("id_cuidador");
+		this.reg_date = v.getString("reg_date");
 	}
 
-	public void setIdusers(Integer idusers) {
-		this.idusers = idusers;
+	
+	public String getNif() {
+		return nif;
 	}
 
-	public String getName() {
-		return name;
+	public void setNif(String nif) {
+		this.nif = nif;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public String getId_pastillero() {
+		return id_pastillero;
 	}
 
-	public String getSurname() {
-		return surname;
+	public void setId_pastillero(String id_pastillero) {
+		this.id_pastillero = id_pastillero;
 	}
 
-	public void setSurname(String surname) {
-		this.surname = surname;
+	public String getFirstname() {
+		return firstname;
 	}
 
-	public Date getBirthdate() {
-		return birthdate;
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
 	}
 
-	public void setBirthdate(Date birthdate) {
-		this.birthdate = birthdate;
+	public String getLastname() {
+		return lastname;
 	}
 
-	public String getUsername() {
-		return username;
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public String getContraseña() {
+		return contraseña;
 	}
 
-	public String getPassword() {
-		return password;
+	public void setContraseña(String contraseña) {
+		this.contraseña = contraseña;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public String getEmail() {
+		return email;
 	}
 
-	@Override
-	public String toString() {
-		return "UsuarioImpl [idusers=" + idusers + ", name=" + name + ", surname=" + surname + ", birthdate="
-				+ birthdate + ", username=" + username + ", password=" + password + "]";
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((birthdate == null) ? 0 : birthdate.hashCode());
-		result = prime * result + ((idusers == null) ? 0 : idusers.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((password == null) ? 0 : password.hashCode());
-		result = prime * result + ((username == null) ? 0 : username.hashCode());
-		return result;
+	public String getRol() {
+		return rol;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		UsuarioImpl other = (UsuarioImpl) obj;
-		if (birthdate == null) {
-			if (other.birthdate != null)
-				return false;
-		} else if (!birthdate.equals(other.birthdate))
-			return false;
-		if (idusers == null) {
-			if (other.idusers != null)
-				return false;
-		} else if (!idusers.equals(other.idusers))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (password == null) {
-			if (other.password != null)
-				return false;
-		} else if (!password.equals(other.password))
-			return false;
-		if (username == null) {
-			if (other.username != null)
-				return false;
-		} else if (!username.equals(other.username))
-			return false;
-		return true;
+	public void setRol(String rol) {
+		this.rol = rol;
+	}
+
+	public String getId_cuidador() {
+		return id_cuidador;
+	}
+
+	public void setId_cuidador(String id_cuidador) {
+		this.id_cuidador = id_cuidador;
+	}
+
+	public String getReg_date() {
+		return reg_date;
+	}
+
+	public void setReg_date(String reg_date) {
+		this.reg_date = reg_date;
+	}
+
+	
+	public JsonObject getJson() {
+		JsonObject json = new JsonObject();
+
+		json.put("nif", this.getNif());
+		json.put("id_pastillero", this.getId_pastillero());
+		json.put("firstname", this.getFirstname());
+		json.put("lastname", this.getLastname());
+		json.put("contraseña", this.getContraseña());
+		json.put("email", this.getEmail());
+		json.put("rol", this.getRol());
+		json.put("id_cuidador", this.getId_cuidador());
+		json.put("reg_date", this.getReg_date());
+
+		return json;
 	}
 }
