@@ -41,7 +41,7 @@ public class UsuarioImpl {
 		this.email = v.getString("email");
 		this.rol = v.getString("rol");
 		this.id_cuidador = v.getString("id_cuidador");
-		this.reg_date = v.getString("reg_date");
+		this.reg_date = String.valueOf(v.getLocalDate("reg_date"));
 	}
 
 	public UsuarioImpl(String body) {
