@@ -129,6 +129,7 @@ public class BDUsuario {
 			JsonObject jsonUsuario = new JsonObject(datosUsuario);
 			
 			String nif = jsonUsuario.getString("nif");
+			jsonUsuario.remove(nif);
 			String stringQuery = "UPDATE pastillero_dad.Usuario SET ";
 			
 			System.out.println(jsonUsuario);

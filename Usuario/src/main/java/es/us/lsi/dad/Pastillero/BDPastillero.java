@@ -1,8 +1,9 @@
 package es.us.lsi.dad.Pastillero;
 
-import java.util.Iterator;
+import java.util.Iterator; 
 import java.util.Map.Entry;
 
+import es.us.lsi.dad.Pastilla.PastillaImpl;
 import es.us.lsi.dad.Usuario.UsuarioImpl;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
@@ -22,25 +23,23 @@ public class BDPastillero {
 	}
 
 	public void iniciarConsumersBDPastillero() {
-		getPastilleros();
+		getAllPastillero();
 		getPastillero();
 		deletePastillero();
 		addPastillero();
 		editPastillero();
 	}
 
-	public void getPastilleros() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("getPastilleros");
+	public void getAllPastillero() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getAllPastillero");
 		consumer.handler(message -> {
 			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Pastillero;");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
 					res.result().forEach(v -> {
-						JsonObject pastilleroJson = new JsonObject();
-						pastilleroJson.put("id_pastillero", String.valueOf(v.getValue("id_pastillero")));
-						pastilleroJson.put("alias", String.valueOf(v.getValue("alias")));
-						resultadoJson.put(String.valueOf(v.getValue("id_pastillero")), pastilleroJson);
+						PastilleroImpl pastillero = new PastilleroImpl(v);
+						resultadoJson.put(String.valueOf(pastillero.getId_pastillero()), pastillero.getJson());
 					});
 				} else {
 					resultadoJson.put("error", String.valueOf(res.cause()));
@@ -53,16 +52,16 @@ public class BDPastillero {
 	public void getPastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getPastillero");
 		consumer.handler(message -> {
-			String pastilleroId = message.body();
-			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad. WHERE id_pastillero = '"+pastilleroId+"';");
+			String datosPastillero = message.body();
+			JsonObject jsonPastillero = new JsonObject(datosPastillero);
+			String Id_pastillero = jsonPastillero.getString("id_pastillero");
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Pastillero WHERE id_pastillero = '"+ Id_pastillero+"';");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
 					res.result().forEach(v -> {
-						JsonObject pastilleroJson = new JsonObject();
-						pastilleroJson.put("id_pastillero", String.valueOf(v.getValue("id_pastillero")));
-						pastilleroJson.put("alias", String.valueOf(v.getValue("alias")));
-						resultadoJson.put(String.valueOf(v.getValue("id_pastillero")), pastilleroJson);
+						PastilleroImpl pastillero = new PastilleroImpl(v);
+						resultadoJson.put(String.valueOf(pastillero.getId_pastillero()), pastillero.getJson());
 					});
 				} else {
 					resultadoJson.put("error", String.valueOf(res.cause()));
@@ -76,12 +75,15 @@ public class BDPastillero {
 	public void deletePastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("deletePastillero");
 		consumer.handler(message -> {
-			String pastilleroId = message.body();
+			String datosPastillero = message.body();
+			JsonObject jsonPastillero = new JsonObject(datosPastillero);
+			String Id_pastillero = jsonPastillero.getString("id_pastillero");
+			
 			Query<RowSet<Row>> query = mySqlClient
-					.query("DELETE FROM pastillero_dad.Pastillero WHERE id_pastillero = '" + pastilleroId + "';");
+					.query("DELETE FROM pastillero_dad.Pastillero WHERE id_pastillero = '" + Id_pastillero + "';");
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Borrado el pastillero " + pastilleroId);
+					message.reply("Borrado el pastillero " + Id_pastillero);
 				} else {
 					message.reply("ERROR AL BORRAR EL PASTILLERO " + res.cause());
 				}
@@ -93,15 +95,14 @@ public class BDPastillero {
 	public void addPastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addPastillero");
 		consumer.handler(message -> {
-			JsonObject jsonNewPastillero = new JsonObject(message.body());
-			String pastilleroId = String.valueOf(jsonNewPastillero.getString("id_pastillero"));
-			String pastilleroAlias = String.valueOf(jsonNewPastillero.getString("alias"));
+			PastilleroImpl pastillero = new PastilleroImpl(message.body());
+			
 			Query<RowSet<Row>> query = mySqlClient
-					.query("INSERT INTO pastillero_dad.Pastillero(id_pastillero, alias) VALUES ('" + pastilleroId
-							+ "','" + pastilleroAlias + "');");
+					.query("INSERT INTO Pastillero(id_pastillero, alias) VALUES ('" + pastillero.getId_pastillero()
+							+ "','" + pastillero.getAlias() + "');");
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Añadido el pastillero " + pastilleroId);
+					message.reply("Añadido el pastillero " + pastillero.getId_pastillero());
 				} else {
 					message.reply("ERROR AL AÑADIR EL PASTILLERO " + res.cause());
 				}
@@ -113,11 +114,15 @@ public class BDPastillero {
 	public void editPastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("editPastillero");
 		consumer.handler(message -> {
-			JsonObject jsonEditPastillero = new JsonObject(message.body());
-			String pastilleroId = String.valueOf(jsonEditPastillero.getString("pastilleroId"));
-			jsonEditPastillero.remove("pastilleroId");
+			String datosPastillero = message.body();
+			JsonObject jsonPastillero = new JsonObject(datosPastillero);
+			
+			String id_pastillero = jsonPastillero.getString("id_pastillero");
+			jsonPastillero.remove(id_pastillero);
 			String stringQuery = "UPDATE pastillero_dad.Pastillero SET ";
-			Iterator<Entry<String, Object>> iteratorJsonPastillero = jsonEditPastillero.iterator();
+			
+			
+			Iterator<Entry<String, Object>> iteratorJsonPastillero = jsonPastillero.iterator();
 			while (iteratorJsonPastillero.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonPastillero.next();
 				stringQuery += elemento.getKey() + " = '" + elemento.getValue() + "'";
@@ -125,9 +130,11 @@ public class BDPastillero {
 					stringQuery += ", ";
 				}
 			}
-			stringQuery += " WHERE id_pastillero = '" + pastilleroId + "';";
-			System.out.println(stringQuery);
+			stringQuery += " WHERE id_pastillero = '" + id_pastillero + "';";
+			
+			
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
+			System.out.println(query);
 			query.execute(res -> {
 				if (res.succeeded()) {
 					message.reply("Editado el pastillero");

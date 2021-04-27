@@ -95,9 +95,7 @@ public class BDPastilla {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addPastilla");
 		consumer.handler(message -> {
 			PastillaImpl pastilla = new PastillaImpl(message.body());
-			System.out.println("INSERT INTO Pastilla (nombre,descripcion,peso)" + " VALUES('"
-							+ pastilla.getNombre() + "','" + pastilla.getDescripcion() + "'," + pastilla.getPeso()
-							+ ");");
+			
 			Query<RowSet<Row>> query = mySqlClient
 					.query("INSERT INTO Pastilla (nombre,descripcion,peso)" + " VALUES('"
 							+ pastilla.getNombre() + "','" + pastilla.getDescripcion() + "'," + pastilla.getPeso()
@@ -117,13 +115,13 @@ public class BDPastilla {
 	public void editPastilla() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("editPastilla");
 		consumer.handler(message -> {
+			
 			String datosPastilla = message.body();
 			JsonObject jsonPastilla = new JsonObject(datosPastilla);
 			
 			String id_pastilla = jsonPastilla.getString("id_pastilla");
+			jsonPastilla.remove(id_pastilla);
 			String stringQuery = "UPDATE pastillero_dad.Pastilla SET ";
-			
-			System.out.println(jsonPastilla);
 			
 			Iterator<Entry<String, Object>> iteratorJsonPastilla = jsonPastilla.iterator();
 			while (iteratorJsonPastilla.hasNext()) {

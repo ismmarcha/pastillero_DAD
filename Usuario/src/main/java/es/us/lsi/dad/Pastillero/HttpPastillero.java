@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Pastillero;
 
-import io.vertx.core.Vertx;
+import io.vertx.core.Vertx; 
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -14,18 +14,18 @@ public class HttpPastillero {
 	}
 	
 	public void iniciarRouterPastillero(Router router) {
-		router.route("/api/pastilleros/*").handler(BodyHandler.create());
-		router.get("/api/pastilleros").handler(this::getPastilleros);
-		router.get("/api/pastilleros/getPastilleroId/:pastilleroid").handler(this::getPastillero);
-		router.post("/api/pastilleros/addPastillero").handler(this::addPastillero);
-		router.put("/api/pastilleros/editPastillero/:pastilleroid").handler(this::editPastillero);
-		router.delete("/api/pastilleros/:pastilleroid").handler(this::deletePastillero);
+		router.route("/api/pastillero/*").handler(BodyHandler.create());
+		router.get("/api/pastillero").handler(this::getAllPastillero);
+		router.get("/api/pastillero/getPastilleroId").handler(this::getPastillero);
+		router.post("/api/pastillero/addPastillero").handler(this::addPastillero);
+		router.put("/api/pastillero/editPastillero").handler(this::editPastillero);
+		router.delete("/api/pastillero").handler(this::deletePastillero);
 	}
 	
-	public void getPastilleros(RoutingContext routingContext) {
+	public void getAllPastillero(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
-		vertx.eventBus().request("getPastilleros", "getPastilleros", reply -> {
+		vertx.eventBus().request("getAllPastillero", "getAllPastillero", reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
@@ -40,8 +40,8 @@ public class HttpPastillero {
 	public void getPastillero(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
-		String pastilleroId = routingContext.request().getParam("pastilleroid");
-		vertx.eventBus().request("getPastillero", pastilleroId, reply -> {
+		String datosPastillero = routingContext.getBodyAsString();
+		vertx.eventBus().request("getPastillero", datosPastillero, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
@@ -55,8 +55,8 @@ public class HttpPastillero {
 
 	public void deletePastillero(RoutingContext routingContext) {
 		// Obtenemos el id del usuario contenido en la propia URL de la petición
-		String pastilleroId = routingContext.request().getParam("pastilleroid");
-		vertx.eventBus().request("deletePastillero", pastilleroId, reply -> {
+		String datosPastillero = routingContext.getBodyAsString();
+		vertx.eventBus().request("deletePastillero", datosPastillero, reply -> {
 			if (reply.succeeded()) {
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
@@ -82,13 +82,9 @@ public class HttpPastillero {
 	}
 
 	public void editPastillero(RoutingContext routingContext) {
-		String pastilleroId = routingContext.request().getParam("pastilleroid");
-		// Creamos un objeto JSON de los datos a modificar del usuario
-		JsonObject json = routingContext.getBodyAsJson();
-		// Añadimos a dicho JSON el userid para poder saber que usuario queremos
-		// modificar.
-		json.put("pastilleroId", pastilleroId);
-		vertx.eventBus().request("editPastillero", json.toString(), reply -> {
+		String datosPastillero = routingContext.getBodyAsString();
+		
+		vertx.eventBus().request("editPastillero", datosPastillero, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
