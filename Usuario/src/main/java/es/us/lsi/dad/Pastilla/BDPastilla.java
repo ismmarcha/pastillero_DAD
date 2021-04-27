@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Pastilla;
 
-import java.util.Iterator; 
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import es.us.lsi.dad.Dosis.DosisImpl;
@@ -28,11 +28,11 @@ public class BDPastilla {
 		addPastilla();
 		editPastilla();
 	}
-	
+
 	public void getAllPastilla() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getAllPastilla");
 		consumer.handler(message -> {
-	
+
 			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Pastilla;");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
@@ -48,15 +48,15 @@ public class BDPastilla {
 			});
 		});
 	}
-	
+
 	public void getPastilla() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getPastilla");
 		consumer.handler(message -> {
 			String datosPastilla = message.body();
 			JsonObject jsonPastilla = new JsonObject(datosPastilla);
 			int Id_pastilla = jsonPastilla.getInteger("Id_pastilla");
-			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Pastilla WHERE Id_pastilla = "
-					+ Id_pastilla + ";");
+			Query<RowSet<Row>> query = mySqlClient
+					.query("SELECT * FROM pastillero_dad.Pastilla WHERE Id_pastilla = " + Id_pastilla + ";");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
@@ -78,11 +78,11 @@ public class BDPastilla {
 			String datosPastilla = message.body();
 			JsonObject jsonPastilla = new JsonObject(datosPastilla);
 			int Id_pastilla = jsonPastilla.getInteger("Id_pastilla");
-			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Pastilla WHERE Id_pastilla = "
-					+ Id_pastilla + ";");
+			Query<RowSet<Row>> query = mySqlClient
+					.query("DELETE FROM pastillero_dad.Pastilla WHERE Id_pastilla = " + Id_pastilla + ";");
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Borrado la Pastilla " + Id_pastilla + " ." );
+					message.reply("Borrado la Pastilla " + Id_pastilla + " .");
 				} else {
 					message.reply("ERROR AL BORRAR LA PASTILLA " + res.cause());
 				}
@@ -90,19 +90,17 @@ public class BDPastilla {
 			});
 		});
 	}
-	
+
 	public void addPastilla() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addPastilla");
 		consumer.handler(message -> {
 			PastillaImpl pastilla = new PastillaImpl(message.body());
-			
-			Query<RowSet<Row>> query = mySqlClient
-					.query("INSERT INTO Pastilla (nombre,descripcion,peso)" + " VALUES('"
-							+ pastilla.getNombre() + "','" + pastilla.getDescripcion() + "'," + pastilla.getPeso()
-							+  ");");
+
+			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Pastilla (nombre,descripcion,peso)" + " VALUES('"
+					+ pastilla.getNombre() + "','" + pastilla.getDescripcion() + "'," + pastilla.getPeso() + ");");
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Añadida la pastilla " + pastilla.getNombre() + " " + pastilla.getPeso() + " ." );
+					message.reply("Añadida la pastilla " + pastilla.getNombre() + " " + pastilla.getPeso() + " .");
 				} else {
 					message.reply("ERROR AL AÑADIR LA PASTILLA " + res.cause());
 				}
@@ -110,30 +108,32 @@ public class BDPastilla {
 			});
 		});
 	}
-	
-	
+
 	public void editPastilla() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("editPastilla");
 		consumer.handler(message -> {
-			
+
 			String datosPastilla = message.body();
 			JsonObject jsonPastilla = new JsonObject(datosPastilla);
-			
+
 			String id_pastilla = jsonPastilla.getString("id_pastilla");
 			jsonPastilla.remove(id_pastilla);
 			String stringQuery = "UPDATE pastillero_dad.Pastilla SET ";
-			
+
 			Iterator<Entry<String, Object>> iteratorJsonPastilla = jsonPastilla.iterator();
 			while (iteratorJsonPastilla.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonPastilla.next();
-				stringQuery += elemento.getKey() + " = '" + elemento.getValue() + "'";
+				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
+					stringQuery += elemento.getValue();
+				} else {
+					stringQuery += "'" + elemento.getValue() + "'";
+				}
 				if (iteratorJsonPastilla.hasNext()) {
 					stringQuery += ", ";
 				}
 			}
-			stringQuery += "WHERE id_pastilla = '"
-					+ id_pastilla + "';";
-			
+			stringQuery += "WHERE id_pastilla = '" + id_pastilla + "';";
+
 			System.out.println(stringQuery);
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			query.execute(res -> {

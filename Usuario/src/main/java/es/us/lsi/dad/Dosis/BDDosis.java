@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Dosis;
 
-import java.util.Iterator; 
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import io.vertx.core.Vertx;
@@ -55,8 +55,8 @@ public class BDDosis {
 			int nif = jsonDosis.getInteger("nif");
 			String hora_inicio = jsonDosis.getString("hora_inicio");
 			String dia_semana = jsonDosis.getString("dia_semana");
-			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = "
-					+ nif + " AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = " + nif
+					+ " AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
@@ -80,8 +80,8 @@ public class BDDosis {
 			int nif = jsonDosis.getInteger("nif");
 			String hora_inicio = jsonDosis.getString("hora_inicio");
 			String dia_semana = jsonDosis.getString("dia_semana");
-			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Dosis WHERE nif = "
-					+ nif + " AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
+			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Dosis WHERE nif = " + nif
+					+ " AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
 			query.execute(res -> {
 				if (res.succeeded()) {
 					message.reply("Borrado la dosis " + nif + " " + hora_inicio + " " + dia_semana);
@@ -97,10 +97,9 @@ public class BDDosis {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addDosis");
 		consumer.handler(message -> {
 			DosisImpl dosis = new DosisImpl(message.body());
-			Query<RowSet<Row>> query = mySqlClient
-					.query("INSERT INTO Dosis (hora_inicio,dia_semana,nif,observacion)" + " VALUES('"
-							+ dosis.getHora_inicio() + "','" + dosis.getDia_semana() + "'," + dosis.getnif()
-							+ ",'" + dosis.getObservacion() + "');");
+			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Dosis (hora_inicio,dia_semana,nif,observacion)"
+					+ " VALUES('" + dosis.getHora_inicio() + "','" + dosis.getDia_semana() + "'," + dosis.getnif()
+					+ ",'" + dosis.getObservacion() + "');");
 			query.execute(res -> {
 				if (res.succeeded()) {
 					message.reply("Añadida la dosis " + dosis.getnif() + " " + dosis.getDia_semana() + " " + dosis);
@@ -127,13 +126,17 @@ public class BDDosis {
 			Iterator<Entry<String, Object>> iteratorJsonDosis = jsonDosis.iterator();
 			while (iteratorJsonDosis.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonDosis.next();
-				stringQuery += elemento.getKey() + " = '" + elemento.getValue() + "'";
+				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
+					stringQuery += elemento.getValue();
+				} else {
+					stringQuery += "'" + elemento.getValue() + "'";
+				}
 				if (iteratorJsonDosis.hasNext()) {
 					stringQuery += ", ";
 				}
 			}
-			stringQuery += "WHERE nif = "
-					+ nif + " AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';";
+			stringQuery += "WHERE nif = " + nif + " AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '"
+					+ dia_semana + "';";
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			query.execute(res -> {
 				if (res.succeeded()) {

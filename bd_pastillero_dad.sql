@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS Usuario (
     contraseña VARCHAR(64) NOT NULL,
     email VARCHAR(50) NOT NULL,
     rol VARCHAR(20) CHECK(rol IN ('enfermo', 'administrador','cuidador')) NOT NULL,
-    id_cuidador VARCHAR(9),
+    id_cuidador VARCHAR(9) NULL,
     reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     PRIMARY KEY ( nif),

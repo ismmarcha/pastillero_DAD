@@ -18,7 +18,7 @@ public class HttpUsuario {
 	public void iniciarRouterUsuario(Router router) {
 		router.route("/api/usuarios/*").handler(BodyHandler.create());
 		router.get("/api/usuarios").handler(this::getAllUsuarios);
-		router.get("/api/usuarios/getUsuarioNif/:usuarionif").handler(this::getUsuarioNIF);
+		router.get("/api/usuarios/getUsuarioNif").handler(this::getUsuarioNIF);
 		router.post("/api/usuarios/addUsuario").handler(this::addUsuario);
 		router.put("/api/usuarios/editUsuario").handler(this::editUsuario);
 		router.delete("/api/usuarios").handler(this::deleteUsuario);
@@ -40,8 +40,8 @@ public class HttpUsuario {
 	}
 	
 	public void getUsuarioNIF(RoutingContext routingContext) {
-		
-		String usuarionif = routingContext.request().getParam("usuarionif");
+		JsonObject jsonUsuario = new JsonObject(routingContext.getBodyAsString());
+		String usuarionif = jsonUsuario.getString("nif");
 		System.out.println(usuarionif);
 		vertx.eventBus().request("getUsuarioNIF", usuarionif, reply -> {
 			if (reply.succeeded()) {
@@ -57,7 +57,9 @@ public class HttpUsuario {
 
 	public void deleteUsuario(RoutingContext routingContext) {
 		// Obtenemos el id del usuario contenido en la propia URL de la petición
-		String usuarionif = routingContext.request().getParam("usuarionif");
+		JsonObject jsonUsuario = new JsonObject(routingContext.getBodyAsString());
+		String usuarionif = jsonUsuario.getString("nif");
+		System.out.println(usuarionif);
 		vertx.eventBus().request("deleteUsuario", usuarionif, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
