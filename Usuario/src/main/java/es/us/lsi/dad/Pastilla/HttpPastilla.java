@@ -6,6 +6,11 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
+
+//1 . Pastillas que hay en una dosis
+//9. Todas las pastillas de un usuario
+//
+
 public class HttpPastilla {
 	Vertx vertx;
 	

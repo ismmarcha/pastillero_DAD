@@ -6,6 +6,14 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
+
+//2. Dosis por usuario 
+//3. Siguiente dosis por usuario
+//4. Dosis por día y por usuario
+//5. Agregar pastillas a una dosis (pastilla dosis)
+//6. Registro Dosis ( cuando dosis tomada)  PENSAR (AÑADIR ID USUARIO A  REGISTRO_DOSIS)
+
+
 public class HttpDosis {
 	Vertx vertx;
 

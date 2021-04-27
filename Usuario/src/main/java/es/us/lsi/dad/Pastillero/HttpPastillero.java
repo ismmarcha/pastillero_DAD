@@ -6,6 +6,9 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
+
+//10. Todos los usuarios por pastillero
+//
 public class HttpPastillero {
 	Vertx vertx;
 
