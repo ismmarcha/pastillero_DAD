@@ -24,6 +24,7 @@ public class HttpUsuario {
 		router.post("/api/usuarios/addUsuario").handler(this::addUsuario);
 		router.put("/api/usuarios/editUsuario").handler(this::editUsuario);
 		router.delete("/api/usuarios").handler(this::deleteUsuario);
+		router.get("/api/usuarios/getEnfermosPorCuidador").handler(this::getEnfermosPorCuidador);
 	}
 	
 	public void getAllUsuarios(RoutingContext routingContext) {
@@ -44,7 +45,6 @@ public class HttpUsuario {
 	public void getUsuarioNIF(RoutingContext routingContext) {
 		JsonObject jsonUsuario = new JsonObject(routingContext.getBodyAsString());
 		String usuarionif = jsonUsuario.getString("nif");
-		System.out.println(usuarionif);
 		vertx.eventBus().request("getUsuarioNIF", usuarionif, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
@@ -74,7 +74,7 @@ public class HttpUsuario {
 		});
 	}
 
-	public void addUsuario(RoutingContext routingContext) {
+	public void addUsuario(RoutingContext routingContext) { 
 		// Añadimos un usuario utilizando los datos que están dentro del body de la
 		// petición. IMPORTANTE: USAR EL BODY EN POSTMAN DE TIPO RAW
 		vertx.eventBus().request("addUsuario", routingContext.getBodyAsString(), reply -> {
@@ -102,6 +102,22 @@ public class HttpUsuario {
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			}
+		});
+	}
+	
+	public void getEnfermosPorCuidador(RoutingContext routingContext) {
+		JsonObject jsonId_cuidador = new JsonObject(routingContext.getBodyAsString());
+		String Id_cuidador = jsonId_cuidador.getString("Id_cuidador");
+		vertx.eventBus().request("getEnfermosPorCuidador", Id_cuidador, reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			}
