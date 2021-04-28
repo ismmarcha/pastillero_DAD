@@ -1,6 +1,10 @@
 package es.us.lsi.dad.Dosis;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.TextStyle;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map.Entry;
 
 import io.vertx.core.Vertx;
@@ -24,6 +28,8 @@ public class BDDosis {
 		getAllDosis();
 		getDosis();
 		getDosisPorUsuario();
+		getDosisPorUsuarioYDia();
+		getSiguienteDosisPorUsuario();
 		deleteDosis();
 		addDosis();
 		editDosis();
@@ -77,7 +83,8 @@ public class BDDosis {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosisPorUsuario");
 		consumer.handler(message -> {
 			String nif = message.body();
-			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif+"';");
+			Query<RowSet<Row>> query = mySqlClient
+					.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "';");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
@@ -92,7 +99,63 @@ public class BDDosis {
 			});
 		});
 	}
-	
+
+	public void getDosisPorUsuarioYDia() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosisPorUsuarioYDia");
+		consumer.handler(message -> {
+			JsonObject jsonBody = new JsonObject(message.body());
+			String nif = jsonBody.getString("nif");
+			String dia_semana = jsonBody.getString("dia_semana");
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "'"
+					+ " AND dia_semana = '" + dia_semana + "';");
+			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						DosisImpl dosis = new DosisImpl(v);
+						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
+					});
+				} else {
+					resultadoJson.put("error", String.valueOf(res.cause()));
+				}
+				message.reply(resultadoJson);
+			});
+		});
+	}
+
+	public void getSiguienteDosisPorUsuario() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisPorUsuario");
+		consumer.handler(message -> {
+			String nif = message.body();
+			LocalDateTime ldt = LocalDateTime.now();
+			Locale localeEs = new Locale("es", "ES");
+			String dia_semana = ldt.getDayOfWeek().getDisplayName(TextStyle.NARROW, localeEs);
+			String siguiente_dia_semana = ldt.plusDays(1).getDayOfWeek().getDisplayName(TextStyle.NARROW, localeEs);
+			LocalTime lt = LocalTime.of(ldt.getHour(), ldt.getMinute());
+			System.out.println(dia_semana);
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "'" + " AND  ((hora_inicio > '"
+					+ lt.toString() + "' AND dia_semana ='" + dia_semana + "') OR "
+					+ "(dia_semana ='" + siguiente_dia_semana + "')) "
+							+ "ORDER BY FIELD(dia_semana, 'L', 'M', 'X', 'J', 'V', 'S', 'D') ASC, hora_inicio LIMIT 1;");
+			System.out.println("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "'" + " AND  ((hora_inicio > '"
+					+ lt.toString() + "' AND dia_semana ='" + dia_semana + "') OR "
+							+ "(dia_semana ='" + siguiente_dia_semana + "')) "
+									+ "ORDER BY FIELD(dia_semana, 'L', 'M', 'X', 'J', 'V', 'S', 'D') ASC, hora_inicio LIMIT 1;");
+			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						DosisImpl dosis = new DosisImpl(v);
+						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
+					});
+				} else {
+					resultadoJson.put("error", String.valueOf(res.cause()));
+				}
+				message.reply(resultadoJson);
+			});
+		});
+	}
+
 	public void deleteDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("deleteDosis");
 		consumer.handler(message -> {
