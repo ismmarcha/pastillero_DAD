@@ -27,6 +27,7 @@ public class BDUsuario {
 		deleteUsuario();
 		addUsuario();
 		editUsuario();
+		getEnfermosPorCuidador();
 	}
 
 	public void getAllUsuarios() {
@@ -38,8 +39,8 @@ public class BDUsuario {
 				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
 					res.result().forEach(v -> {
-						UsuarioImpl pastilla = new UsuarioImpl(v);
-						json.put(String.valueOf(pastilla.getNif()), pastilla.getJson());
+						UsuarioImpl usuario = new UsuarioImpl(v);
+						json.put(String.valueOf(usuario.getNif()), usuario.getJson());
 					});
 				} else {
 					json.put("error", String.valueOf(res.cause()));
@@ -161,6 +162,27 @@ public class BDUsuario {
 					message.reply("ERROR AL EDITAR EL USUARIO " + res.cause());
 				}
 				;
+			});
+		});
+	}
+	
+	public void getEnfermosPorCuidador() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getEnfermosPorCuidador");
+		consumer.handler(message -> {
+			String Id_cuidador = message.body();
+			System.out.println("HOLA 2");
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Usuario WHERE id_cuidador = "+ Id_cuidador +";");
+			query.execute(res -> {
+				JsonObject json = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						UsuarioImpl usuario = new UsuarioImpl(v);
+						json.put(String.valueOf(usuario.getNif()), usuario.getJson());
+					});
+				} else {
+					json.put("error", String.valueOf(res.cause()));
+				}
+				message.reply(json);
 			});
 		});
 	}
