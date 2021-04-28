@@ -25,6 +25,7 @@ public class BDPastillero {
 	public void iniciarConsumersBDPastillero() {
 		getAllPastillero();
 		getPastillero();
+		getUsuariosPorPastillero();
 		deletePastillero();
 		addPastillero();
 		editPastillero();
@@ -63,6 +64,30 @@ public class BDPastillero {
 					res.result().forEach(v -> {
 						PastilleroImpl pastillero = new PastilleroImpl(v);
 						resultadoJson.put(String.valueOf(pastillero.getId_pastillero()), pastillero.getJson());
+					});
+				} else {
+					resultadoJson.put("error", String.valueOf(res.cause()));
+				}
+				message.reply(resultadoJson);
+			});
+		});
+	}
+	
+	public void getUsuariosPorPastillero() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getUsuariosPorPastillero");
+		consumer.handler(message -> {
+			String datosPastillero = message.body();
+			JsonObject jsonPastillero = new JsonObject(datosPastillero);
+			String Id_pastillero = jsonPastillero.getString("id_pastillero");
+			System.out.println(Id_pastillero);
+			Query<RowSet<Row>> query = mySqlClient
+					.query("SELECT * FROM pastillero_dad.Usuario WHERE id_pastillero = '" + Id_pastillero + "';");
+			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						UsuarioImpl usuario = new UsuarioImpl(v);
+						resultadoJson.put(String.valueOf(usuario.getNif()), usuario.getJson());
 					});
 				} else {
 					resultadoJson.put("error", String.valueOf(res.cause()));

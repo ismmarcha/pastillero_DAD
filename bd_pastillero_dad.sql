@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS Pastillero (
 
 CREATE TABLE IF NOT EXISTS Usuario (
     nif VARCHAR(9),
-    id_pastillero VARCHAR(20) NOT NULL,
+    id_pastillero VARCHAR(20) ,
     firstname VARCHAR(30) NOT NULL,
     lastname VARCHAR(30) NOT NULL,
     contraseña VARCHAR(64) NOT NULL,
@@ -71,7 +71,6 @@ CREATE TABLE IF NOT EXISTS Pastilla_Dosis (
 CREATE TABLE IF NOT EXISTS Registro_Dosis (
     id_registro_dosis INT UNSIGNED AUTO_INCREMENT ,
 	id_dosis INT UNSIGNED,
-    fecha_caducidad DATETIME,
     tomada BOOLEAN NOT NULL,
     
 	PRIMARY KEY ( id_registro_dosis),
@@ -85,23 +84,24 @@ insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, r
 insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) values ("12313","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","enfermo","12344");
 
 insert into Pastilla (nombre,descripcion,peso) values ("Paracetamol","Comprimidos EPG","100");
+insert into Pastilla (nombre,descripcion,peso) values ("Frenadol","Comprimidos EPG","100");
 
 insert into Dosis (hora_inicio,dia_semana,nif,observacion) values ("15:00","L","12344","Recordar cita médica, o recordar que se lo tome en un cierto orden");
 
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","1",0.5);
 
-insert into Registro_Dosis (fecha_caducidad,tomada,id_dosis) values (date(12/12/2021),TRUE,"1");
+#insert into Registro_Dosis (fecha_caducidad,tomada,id_dosis) values (date(12/12/2021),TRUE,"1");
 
 
-select * from Pastilla;
+select * from Pastilla_Dosis;
 SELECT * FROM pastillero_dad.Pastilla;
-select * from Pastillero;
+select * from Dosis;
 
 SELECT * FROM pastillero_dad.Usuario;
 
 SELECT * FROM pastillero_dad.Dosis WHERE nif = 1 AND hora_inicio = '15:00' AND dia_semana = 'L';
+SELECT * FROM pastillero_dad.Pastilla WHERE id_pastilla IN (select id_pastilla from pastillero_dad.Pastilla_Dosis WHERE id_dosis = 1);
+SELECT Pastilla.id_pastilla ,nombre ,descripcion ,peso FROM pastillero_dad.Pastilla LEFT JOIN pastillero_dad.Pastilla_Dosis ON Pastilla.id_pastilla = pastilla_dosis.id_pastilla WHERE pastilla_dosis.id_pastilla = 1 ;
 
-
-
-
-
+DELETE FROM pastillero_dad.Pastilla_Dosis WHERE Id_pastilla = 1 AND Id_Dosis = 1;
+SELECT * FROM pastillero_dad.Pastilla LEFT JOIN pastillero_dad.Dosis ON Pastilla.id_pastilla = pastilla_dosis.id_pastilla WHERE pastilla_dosis.id_pastilla =  Id_dosis ;

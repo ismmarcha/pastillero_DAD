@@ -7,7 +7,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
 
-//7. Obtener los pacientes de un cuidador. 
 
 public class HttpUsuario {
 	Vertx vertx;
@@ -110,7 +109,7 @@ public class HttpUsuario {
 	
 	public void getEnfermosPorCuidador(RoutingContext routingContext) {
 		JsonObject jsonId_cuidador = new JsonObject(routingContext.getBodyAsString());
-		String Id_cuidador = jsonId_cuidador.getString("Id_cuidador");
+		String Id_cuidador = jsonId_cuidador.getString("id_cuidador");
 		vertx.eventBus().request("getEnfermosPorCuidador", Id_cuidador, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());

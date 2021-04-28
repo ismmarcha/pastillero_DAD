@@ -7,8 +7,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
 
-//10. Todos los usuarios por pastillero
-//
+
 public class HttpPastillero {
 	Vertx vertx;
 
@@ -20,9 +19,11 @@ public class HttpPastillero {
 		router.route("/api/pastillero/*").handler(BodyHandler.create());
 		router.get("/api/pastillero").handler(this::getAllPastillero);
 		router.get("/api/pastillero/getPastilleroId").handler(this::getPastillero);
+		router.get("/api/pastillero/getUsuariosPorPastillero").handler(this::getUsuariosPorPastillero);
 		router.post("/api/pastillero/addPastillero").handler(this::addPastillero);
 		router.put("/api/pastillero/editPastillero").handler(this::editPastillero);
 		router.delete("/api/pastillero").handler(this::deletePastillero);
+		
 	}
 	
 	public void getAllPastillero(RoutingContext routingContext) {
@@ -45,6 +46,20 @@ public class HttpPastillero {
 		// a la petición REST. Así igual con el resto
 		String datosPastillero = routingContext.getBodyAsString();
 		vertx.eventBus().request("getPastillero", datosPastillero, reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			}
+		});
+	}
+	
+	public void getUsuariosPorPastillero(RoutingContext routingContext) {
+		String datosPastillero = routingContext.getBodyAsString();
+		vertx.eventBus().request("getUsuariosPorPastillero", datosPastillero, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
