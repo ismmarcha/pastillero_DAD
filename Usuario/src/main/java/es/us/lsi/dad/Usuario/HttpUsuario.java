@@ -8,7 +8,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 
 //7. Obtener los pacientes de un cuidador. 
-//
+
 public class HttpUsuario {
 	Vertx vertx;
 	
