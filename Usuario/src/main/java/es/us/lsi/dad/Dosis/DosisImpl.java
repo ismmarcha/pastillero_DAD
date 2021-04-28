@@ -6,12 +6,12 @@ import io.vertx.sqlclient.Row;
 public class DosisImpl {
 
 	private int id_dosis;
-	private int nif;
+	private String nif;
 	private String hora_inicio;
 	private String dia_semana;
 	private String observacion;
 
-	public DosisImpl(int id_dosis, int nif, String hora_inicio, String dia_semana, String observacion) {
+	public DosisImpl(int id_dosis, String nif, String hora_inicio, String dia_semana, String observacion) {
 		super();
 		this.id_dosis = id_dosis;
 		this.nif = nif;
@@ -23,7 +23,7 @@ public class DosisImpl {
 	public DosisImpl(Row v) {
 		super();
 		this.id_dosis = v.getInteger("id_dosis");
-		this.nif = v.getInteger("nif");
+		this.nif = v.getString("nif");
 		this.hora_inicio = v.getString("hora_inicio");
 		;
 		this.dia_semana = v.getString("dia_semana");
@@ -36,7 +36,7 @@ public class DosisImpl {
 		if (json.containsKey("id_dosis")) {
 			this.id_dosis = json.getInteger("id_dosis");
 		}
-		this.nif = json.getInteger("nif");
+		this.nif = json.getString("nif");
 		this.hora_inicio = json.getString("hora_inicio");
 		this.dia_semana = json.getString("dia_semana");
 		this.observacion = json.getString("observacion");
@@ -51,11 +51,11 @@ public class DosisImpl {
 		this.id_dosis = id_dosis;
 	}
 
-	public int getnif() {
+	public String getnif() {
 		return nif;
 	}
 
-	public void setnif(int nif) {
+	public void setnif(String nif) {
 		this.nif = nif;
 	}
 

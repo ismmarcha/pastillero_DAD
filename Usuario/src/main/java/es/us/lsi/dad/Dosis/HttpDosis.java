@@ -25,6 +25,7 @@ public class HttpDosis {
 		router.route("/api/dosis/*").handler(BodyHandler.create());
 		router.get("/api/dosis").handler(this::getAllDosis);
 		router.get("/api/dosis/getDosis").handler(this::getDosis);
+		router.get("/api/dosis/getDosisPorUsuario").handler(this::getDosisPorUsuario);
 		router.post("/api/dosis/addDosis").handler(this::addDosis);
 		router.put("/api/dosis/editDosis").handler(this::editDosis);
 		router.delete("/api/dosis").handler(this::deleteDosis);
@@ -59,6 +60,24 @@ public class HttpDosis {
 			}
 		});
 	}
+	
+	public void getDosisPorUsuario(RoutingContext routingContext) {
+		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
+		// a la petición REST. Así igual con el resto
+		JsonObject datosUsuario = new JsonObject(routingContext.getBodyAsString()); 
+		String nifUsuario = datosUsuario.getString("nif");
+		vertx.eventBus().request("getDosisPorUsuario", nifUsuario, reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			}
+		});
+	}
+
 
 	public void deleteDosis(RoutingContext routingContext) {
 		// Obtenemos el id del usuario contenido en la propia URL de la petición
