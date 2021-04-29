@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Dosis;
 
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; 
 import java.time.LocalTime;
 import java.time.format.TextStyle;
 import java.util.Iterator;
@@ -246,19 +246,32 @@ public class BDDosis {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getAllRegistroDosis");
 		consumer.handler(message -> {
 			String datosUsuario = message.body();
-			JsonObject jsonDosis = new JsonObject(datosUsuario);
-			String nif = jsonDosis.getString("nif");
-			Query<RowSet<Row>> query = mySqlClient.query("SELECT Registro_Dosis.id_registro_dosis, Registro_Dosis.id_dosis, Registro_Dosis.tomada FROM pastillero_dad.Registro_Dosis JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = ' "+ nif + "' ;" );
+			JsonObject jsonUsuario = new JsonObject(datosUsuario);
+			String nif = jsonUsuario.getString("nif");
+			System.out.println(nif);
+			
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT Registro_Dosis.id_registro_dosis, Registro_Dosis.id_dosis, Registro_Dosis.tomada FROM pastillero_dad.Registro_Dosis "
+					+ "JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = ' "+ nif + "' ;" );
+			System.out.println(query.toString());
+			
 			query.execute(res -> {
+				
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
+					
+					
 					res.result().forEach(v -> {
-						DosisImpl dosis = new DosisImpl(v);
-						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
+						
+						RegistroDosisImpl RegistroDosis = new RegistroDosisImpl(v);
+						resultadoJson.put(String.valueOf(RegistroDosis.getId_registro_dosis()), RegistroDosis.getJson());
+						
 					});
 				} else {
+					System.out.println("HOLA " + res.result());
+
 					resultadoJson.put("error", String.valueOf(res.cause()));
 				}
+				 
 				message.reply(resultadoJson);
 			});
 		});
