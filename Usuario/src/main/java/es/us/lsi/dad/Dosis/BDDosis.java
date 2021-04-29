@@ -32,6 +32,7 @@ public class BDDosis {
 		getSiguienteDosisPorUsuario();
 		deleteDosis();
 		addDosis();
+		addRegistroDosis();
 		editDosis();
 	}
 
@@ -127,20 +128,19 @@ public class BDDosis {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisPorUsuario");
 		consumer.handler(message -> {
 			String nif = message.body();
-			LocalDateTime ldt = LocalDateTime.now();
+			/*LocalDateTime ldt = LocalDateTime.now();
 			Locale localeEs = new Locale("es", "ES");
 			String dia_semana = ldt.getDayOfWeek().getDisplayName(TextStyle.NARROW, localeEs);
 			String siguiente_dia_semana = ldt.plusDays(1).getDayOfWeek().getDisplayName(TextStyle.NARROW, localeEs);
 			LocalTime lt = LocalTime.of(ldt.getHour(), ldt.getMinute());
-			System.out.println(dia_semana);
-			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "'" + " AND  ((hora_inicio > '"
-					+ lt.toString() + "' AND dia_semana ='" + dia_semana + "') OR "
-					+ "(dia_semana ='" + siguiente_dia_semana + "')) "
-							+ "ORDER BY FIELD(dia_semana, 'L', 'M', 'X', 'J', 'V', 'S', 'D') ASC, hora_inicio LIMIT 1;");
-			System.out.println("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "'" + " AND  ((hora_inicio > '"
-					+ lt.toString() + "' AND dia_semana ='" + dia_semana + "') OR "
-							+ "(dia_semana ='" + siguiente_dia_semana + "')) "
-									+ "ORDER BY FIELD(dia_semana, 'L', 'M', 'X', 'J', 'V', 'S', 'D') ASC, hora_inicio LIMIT 1;");
+			System.out.println(dia_semana);*/
+			Query<RowSet<Row>> query = mySqlClient.query(
+					"SELECT * FROM pastillero_dad.Dosis WHERE nif = '"+nif+"' "
+					+ "AND ((now() < DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T') "
+					+ " AND dia_semana = weekday(now())) OR (now() < DATE_ADD(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T'),INTERVAL 1 DAY) AND dia_semana = weekday(DATE_ADD(now(), INTERVAL 1 DAY))));");
+			System.out.println("SELECT * FROM pastillero_dad.Dosis WHERE nif = '"+nif+"' "
+					+ "AND ((now() < DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T') "
+					+ " AND dia_semana = weekday(now())) OR (now() < DATE_ADD(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T'),INTERVAL 1 DAY) AND dia_semana = weekday(DATE_ADD(now(), INTERVAL 1 DAY)))");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
@@ -189,6 +189,23 @@ public class BDDosis {
 					message.reply("Añadida la dosis " + dosis.getnif() + " " + dosis.getDia_semana() + " " + dosis);
 				} else {
 					message.reply("ERROR AL AÑADIR EL Dosis " + res.cause());
+				}
+				;
+			});
+		});
+	}
+	
+	public void addRegistroDosis() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
+		consumer.handler(message -> {
+			int id_dosis = Integer.valueOf(message.body());
+			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis)"
+					+ " VALUES("+id_dosis+")");
+			query.execute(res -> {
+				if (res.succeeded()) {
+					message.reply("Añadido Registro Dosis con id_dosis: "+ id_dosis);
+				} else {
+					message.reply("ERROR AL AÑADIR EL REGISTRO DOSIS " + res.cause());
 				}
 				;
 			});

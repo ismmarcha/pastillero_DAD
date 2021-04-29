@@ -8,10 +8,10 @@ public class DosisImpl {
 	private int id_dosis;
 	private String nif;
 	private String hora_inicio;
-	private String dia_semana;
+	private int dia_semana;
 	private String observacion;
 
-	public DosisImpl(int id_dosis, String nif, String hora_inicio, String dia_semana, String observacion) {
+	public DosisImpl(int id_dosis, String nif, String hora_inicio, int dia_semana, String observacion) {
 		super();
 		this.id_dosis = id_dosis;
 		this.nif = nif;
@@ -26,7 +26,7 @@ public class DosisImpl {
 		this.nif = v.getString("nif");
 		this.hora_inicio = v.getString("hora_inicio");
 		;
-		this.dia_semana = v.getString("dia_semana");
+		this.dia_semana = v.getInteger("dia_semana");
 		this.observacion = v.getString("observacion");
 	}
 
@@ -38,7 +38,7 @@ public class DosisImpl {
 		}
 		this.nif = json.getString("nif");
 		this.hora_inicio = json.getString("hora_inicio");
-		this.dia_semana = json.getString("dia_semana");
+		this.dia_semana = json.getInteger("dia_semana");
 		this.observacion = json.getString("observacion");
 
 	}
@@ -67,11 +67,11 @@ public class DosisImpl {
 		this.hora_inicio = hora_inicio;
 	}
 
-	public String getDia_semana() {
+	public int getDia_semana() {
 		return dia_semana;
 	}
 
-	public void setDia_semana(String dia_semana) {
+	public void setDia_semana(int dia_semana) {
 		this.dia_semana = dia_semana;
 	}
 
