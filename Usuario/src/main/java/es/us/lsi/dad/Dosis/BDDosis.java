@@ -31,9 +31,14 @@ public class BDDosis {
 		getDosisPorUsuarioYDia();
 		getSiguienteDosisPorUsuario();
 		deleteDosis();
-		addDosis();
-		addRegistroDosis();
 		editDosis();
+		addDosis();
+		
+		getAllRegistroDosis();
+		addRegistroDosis();
+		deleteRegistroDosis();
+		editRegistroDosis();
+		
 	}
 
 	public void getAllDosis() {
@@ -195,23 +200,7 @@ public class BDDosis {
 		});
 	}
 	
-	public void addRegistroDosis() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
-		consumer.handler(message -> {
-			int id_dosis = Integer.valueOf(message.body());
-			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis)"
-					+ " VALUES("+id_dosis+")");
-			query.execute(res -> {
-				if (res.succeeded()) {
-					message.reply("Añadido Registro Dosis con id_dosis: "+ id_dosis);
-				} else {
-					message.reply("ERROR AL AÑADIR EL REGISTRO DOSIS " + res.cause());
-				}
-				;
-			});
-		});
-	}
-
+	
 	public void editDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("editDosis");
 		consumer.handler(message -> {
@@ -249,4 +238,79 @@ public class BDDosis {
 			});
 		});
 	}
+	
+	
+	public void getAllRegistroDosis() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getAllRegistroDosis");
+		consumer.handler(message -> {
+			String datosUsuario = message.body();
+			JsonObject jsonDosis = new JsonObject(datosUsuario);
+			String nif = jsonDosis.getString("nif");
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT Registro_Dosis.id_registro_dosis, Registro_Dosis.id_dosis, Registro_Dosis.tomada FROM pastillero_dad.Registro_Dosis JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = ' "+ nif + "' ;" );
+			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						DosisImpl dosis = new DosisImpl(v);
+						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
+					});
+				} else {
+					resultadoJson.put("error", String.valueOf(res.cause()));
+				}
+				message.reply(resultadoJson);
+			});
+		});
+	}
+	
+	public void addRegistroDosis() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
+		consumer.handler(message -> {
+			int id_dosis = Integer.valueOf(message.body());
+			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis)"
+					+ " VALUES("+id_dosis+")");
+			query.execute(res -> {
+				if (res.succeeded()) {
+					message.reply("Añadido Registro Dosis con id_dosis: "+ id_dosis);
+				} else {
+					message.reply("ERROR AL AÑADIR EL REGISTRO DOSIS " + res.cause());
+				}
+				;
+			});
+		});
+	}
+	
+	public void deleteRegistroDosis() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
+		consumer.handler(message -> {
+			int id_dosis = Integer.valueOf(message.body());
+			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis)"
+					+ " VALUES("+id_dosis+")");
+			query.execute(res -> {
+				if (res.succeeded()) {
+					message.reply("Añadido Registro Dosis con id_dosis: "+ id_dosis);
+				} else {
+					message.reply("ERROR AL AÑADIR EL REGISTRO DOSIS " + res.cause());
+				}
+				;
+			});
+		});
+	}
+	
+	public void editRegistroDosis() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
+		consumer.handler(message -> {
+			int id_dosis = Integer.valueOf(message.body());
+			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis)"
+					+ " VALUES("+id_dosis+")");
+			query.execute(res -> {
+				if (res.succeeded()) {
+					message.reply("Añadido Registro Dosis con id_dosis: "+ id_dosis);
+				} else {
+					message.reply("ERROR AL AÑADIR EL REGISTRO DOSIS " + res.cause());
+				}
+				;
+			});
+		});
+	}
+
 }
