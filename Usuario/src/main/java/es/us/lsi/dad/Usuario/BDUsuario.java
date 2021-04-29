@@ -24,10 +24,11 @@ public class BDUsuario {
 	public void iniciarConsumersBDUsuario() {
 		getAllUsuarios();
 		getUsuarioNIF();
+		getEnfermosPorCuidador();
 		deleteUsuario();
 		addUsuario();
 		editUsuario();
-		getEnfermosPorCuidador();
+		
 	}
 
 	public void getAllUsuarios() {
@@ -67,6 +68,27 @@ public class BDUsuario {
 				} else {
 					json.put("No existe usuario con ese NIF", String.valueOf(res.cause()));
 
+				}
+				message.reply(json);
+			});
+		});
+	}
+	
+	public void getEnfermosPorCuidador() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getEnfermosPorCuidador");
+		consumer.handler(message -> {
+			String Id_cuidador = message.body();
+			System.out.println("HOLA 2");
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Usuario WHERE id_cuidador = "+ Id_cuidador +";");
+			query.execute(res -> {
+				JsonObject json = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						UsuarioImpl usuario = new UsuarioImpl(v);
+						json.put(String.valueOf(usuario.getNif()), usuario.getJson());
+					});
+				} else {
+					json.put("error", String.valueOf(res.cause()));
 				}
 				message.reply(json);
 			});
@@ -166,24 +188,5 @@ public class BDUsuario {
 		});
 	}
 	
-	public void getEnfermosPorCuidador() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("getEnfermosPorCuidador");
-		consumer.handler(message -> {
-			String Id_cuidador = message.body();
-			System.out.println("HOLA 2");
-			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Usuario WHERE id_cuidador = "+ Id_cuidador +";");
-			query.execute(res -> {
-				JsonObject json = new JsonObject();
-				if (res.succeeded()) {
-					res.result().forEach(v -> {
-						UsuarioImpl usuario = new UsuarioImpl(v);
-						json.put(String.valueOf(usuario.getNif()), usuario.getJson());
-					});
-				} else {
-					json.put("error", String.valueOf(res.cause()));
-				}
-				message.reply(json);
-			});
-		});
-	}
+
 }

@@ -20,7 +20,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 	private Gson gson;
 	private Router router;
 	@Override
-	public void start(Promise<Void> startFuture) {
+	public void start(Promise<Void> startFuture) { 
 		gson = new Gson();
 		// Iniciamos el verticle encargado de la base de datos
 		vertx.deployVerticle(new BDVerticle());
@@ -40,7 +40,9 @@ public class HttpServerVerticle extends AbstractVerticle {
 		
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
+
 		httpServer.requestHandler(router::handle).listen(8087, res -> {
+
 			if (res.succeeded()) {
 				startFuture.complete();
 			} else {

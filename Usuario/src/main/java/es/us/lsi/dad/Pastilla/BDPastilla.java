@@ -277,8 +277,12 @@ public class BDPastilla {
 			String datosUsuario = message.body();
 			JsonObject jsonPastilla = new JsonObject(datosUsuario);
 			String nif = jsonPastilla.getString("nif");
+			
 			Query<RowSet<Row>> query = mySqlClient
-					.query("QUERY DEL INFIERNO POR ESCRIBIR);
+					.query("SELECT Pastilla.id_pastilla , Pastilla.nombre , Pastilla.descripcion , Pastilla.peso FROM pastillero_dad.Pastilla  "
+							+ "JOIN pastillero_dad.Pastilla_Dosis ON Pastilla.id_pastilla = pastilla_dosis.id_pastilla"
+							+ " JOIN pastillero_dad.dosis ON pastilla_dosis.id_dosis = dosis.id_dosis WHERE  dosis.nif = '" +  nif + "';" );
+
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
