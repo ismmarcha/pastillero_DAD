@@ -187,10 +187,10 @@ public class HttpDosis {
 	
 	
 	public void addRegistroDosis(RoutingContext routingContext) {
-		// Añadimos un usuario utilizando los datos que están dentro del body de la
-		// petición. IMPORTANTE: USAR EL BODY EN POSTMAN DE TIPO RAW
+		
 		String datosDosis = routingContext.getBodyAsString();
-		vertx.eventBus().request("addDosis", datosDosis, reply -> {
+		
+		vertx.eventBus().request("addRegistroDosis", datosDosis, reply -> {
 			if (reply.succeeded()) {
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));

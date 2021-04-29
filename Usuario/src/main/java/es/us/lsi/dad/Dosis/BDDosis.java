@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map.Entry;
 
+import es.us.lsi.dad.Pastilla.PastillaImpl;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -251,7 +252,7 @@ public class BDDosis {
 			System.out.println(nif);
 			
 			Query<RowSet<Row>> query = mySqlClient.query("SELECT Registro_Dosis.id_registro_dosis, Registro_Dosis.id_dosis, Registro_Dosis.tomada FROM pastillero_dad.Registro_Dosis "
-					+ "JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = ' "+ nif + "' ;" );
+					+ "JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = "+ nif + ";" );
 			System.out.println(query.toString());
 			
 			query.execute(res -> {
@@ -267,7 +268,7 @@ public class BDDosis {
 						
 					});
 				} else {
-					System.out.println("HOLA " + res.result());
+					
 
 					resultadoJson.put("error", String.valueOf(res.cause()));
 				}
@@ -280,14 +281,19 @@ public class BDDosis {
 	public void addRegistroDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
 		consumer.handler(message -> {
-			int id_dosis = Integer.valueOf(message.body());
-			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis)"
-					+ " VALUES("+id_dosis+")");
+			System.out.println("HOLAAA");
+			String datosRegistro = message.body();
+			JsonObject jsonRegistro = new JsonObject(datosRegistro);
+			int id_dosis = jsonRegistro.getInteger("id_dosis");
+			Boolean tomada = jsonRegistro.getBoolean("tomada"); 
+			
+			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis,tomada)" + " VALUES("
+					+ id_dosis + "," + tomada  + ");");
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Añadido Registro Dosis con id_dosis: "+ id_dosis);
+					message.reply("Añadido el registro de la dosis " + id_dosis + " .");
 				} else {
-					message.reply("ERROR AL AÑADIR EL REGISTRO DOSIS " + res.cause());
+					message.reply("ERROR AL AÑADIR EL REGISTRO DE LA DOSIS " + res.cause());
 				}
 				;
 			});
