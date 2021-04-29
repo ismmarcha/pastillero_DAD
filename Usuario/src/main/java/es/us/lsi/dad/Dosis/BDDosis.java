@@ -140,12 +140,14 @@ public class BDDosis {
 			LocalTime lt = LocalTime.of(ldt.getHour(), ldt.getMinute());
 			System.out.println(dia_semana);*/
 			Query<RowSet<Row>> query = mySqlClient.query(
-					"SELECT * FROM pastillero_dad.Dosis WHERE nif = '"+nif+"' "
-					+ "AND ((now() < DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T') "
-					+ " AND dia_semana = weekday(now())) OR (now() < DATE_ADD(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T'),INTERVAL 1 DAY) AND dia_semana = weekday(DATE_ADD(now(), INTERVAL 1 DAY))));");
-			System.out.println("SELECT * FROM pastillero_dad.Dosis WHERE nif = '"+nif+"' "
-					+ "AND ((now() < DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T') "
-					+ " AND dia_semana = weekday(now())) OR (now() < DATE_ADD(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T'),INTERVAL 1 DAY) AND dia_semana = weekday(DATE_ADD(now(), INTERVAL 1 DAY)))");
+					"SELECT * FROM pastillero_dad.Dosis"
+					+" WHERE nif ='"+nif+"'"
+					+"AND ((now() < DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T') AND dia_semana = WEEKDAY(now()) "
+					+"OR (now() < DATE_ADD(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T'),INTERVAL 1 DAY) "
+					+"AND dia_semana = weekday(DATE_ADD(now(), INTERVAL 1 DAY))))) "
+					+"ORDER BY "
+					+"if(dia_semana = weekday(now()), TIMEDIFF(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T') , now()), "
+					+"TIMEDIFF(DATE_ADD(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T'),INTERVAL 1 DAY), now())) LIMIT 1;");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
