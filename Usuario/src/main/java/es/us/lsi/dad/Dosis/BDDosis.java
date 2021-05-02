@@ -134,12 +134,6 @@ public class BDDosis {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisPorUsuario");
 		consumer.handler(message -> {
 			String nif = message.body();
-			/*LocalDateTime ldt = LocalDateTime.now();
-			Locale localeEs = new Locale("es", "ES");
-			String dia_semana = ldt.getDayOfWeek().getDisplayName(TextStyle.NARROW, localeEs);
-			String siguiente_dia_semana = ldt.plusDays(1).getDayOfWeek().getDisplayName(TextStyle.NARROW, localeEs);
-			LocalTime lt = LocalTime.of(ldt.getHour(), ldt.getMinute());
-			System.out.println(dia_semana);*/
 			Query<RowSet<Row>> query = mySqlClient.query(
 					"SELECT * "
 					+ "FROM Dosis "

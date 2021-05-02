@@ -83,12 +83,15 @@ CREATE TABLE IF NOT EXISTS Registro_Dosis (
 insert into Pastillero (id_pastillero , alias) values ('192R5T',"Pastillero papá");
 
 insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol) values ("12344","192R5T","Ismael","Mamel","Ismaelito22","admin@admin.es","cuidador");
-insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) values ("12313","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","enfermo","12344");
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) 
+values ("12311","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","cuidador","12344");
+
+select * from Usuario;
 
 insert into Pastilla (nombre,descripcion,peso) values ("Paracetamol","Comprimidos EPG","100");
 insert into Pastilla (nombre,descripcion,peso) values ("Frenadol","Comprimidos EPG","100");
 
-insert into Dosis (hora_inicio,dia_semana,nif,observacion) values ("15:00",1,"12344","Recordar cita médica, o recordar que se lo tome en un cierto orden");
+insert into Dosis (hora_inicio,dia_semana,nif,observacion) values ("13:00",2,"12344","Recordar cita médica, o recordar que se lo tome en un cierto orden");
 
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","1",0.5);
 
@@ -110,3 +113,102 @@ ORDER BY
 if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0,  
 TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), 
 TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()));
+
+#TRIGGER PARA EVITAR QUE HAYA MÁS DE 28 DOSIS POR USUARIO
+DROP FUNCTION IF EXISTS numeroDosisUsuarioSuperado;
+
+DELIMITER //
+CREATE FUNCTION numeroDosisUsuarioSuperado (nifIn VARCHAR(9))
+	RETURNS bool
+    READS SQL DATA
+	DETERMINISTIC
+BEGIN
+	DECLARE max bool;
+    DECLARE numeroDosis INT;
+    
+	SELECT COUNT(*)
+ 	INTO numeroDosis
+    FROM Dosis
+    WHERE nif = nifIn;
+    
+    if(numeroDosis >= 28)
+    THEN
+		SET max = true;
+    ELSE 
+		SET max = false;
+    END IF;
+    
+    RETURN max;
+END //
+DELIMITER ;
+
+SELECT numeroDosisUsuarioSuperado('12344');
+
+DROP TRIGGER IF EXISTS numeroMaximoDosis;
+
+DELIMITER //
+CREATE TRIGGER numeroMaximoDosis
+BEFORE INSERT ON Dosis
+FOR EACH ROW
+BEGIN
+  IF numeroDosisUsuarioSuperado(NEW.nif) != 0
+    THEN
+      signal sqlstate '45000' set message_text = 'Se ha superado el máximo de 28 de dosis para este usuario';
+  END IF;
+END//
+DELIMITER ;
+
+SELECT COUNT(*)
+ 	FROM Dosis
+    WHERE nif = '12344';
+    
+##TRIGGER PARA EVITAR QUE UN ENFERMO TENGO ENFERMOS A TU CUIDADO
+DROP FUNCTION IF EXISTS permiteCuidador;
+
+DELIMITER //
+CREATE FUNCTION permiteCuidador (nifCuidadorIn VARCHAR(9), rolIn VARCHAR(25))
+	RETURNS bool
+    READS SQL DATA
+	DETERMINISTIC
+BEGIN
+    DECLARE cuidador bool;
+    DECLARE rolCuidador VARCHAR(25);
+    
+    SELECT rol
+    INTO rolCuidador
+    FROM Usuario
+    WHERE nif = nifCuidadorIn;
+    
+	#signal sqlstate '45000' set message_text = rolCuidador;
+    
+    if(rolCuidador = 'cuidador' AND rolIn = 'enfermo')
+    THEN
+		SET cuidador = true;
+    ELSE 
+		SET cuidador = false;
+    END IF;
+    
+    RETURN cuidador;
+END //
+DELIMITER ;
+
+SELECT * from usuario;
+
+SELECT permiteCuidador('12344', 'cuidador');
+
+DROP TRIGGER IF EXISTS triggerPermiteCuidador;
+
+DELIMITER //
+CREATE TRIGGER triggerPermiteCuidador
+BEFORE INSERT ON Usuario
+FOR EACH ROW
+BEGIN
+  IF permiteCuidador(NEW.id_cuidador, NEW.rol) = 0
+    THEN
+      signal sqlstate '45000' set message_text = 'El nif del cuidador no pertenece a un cuidador válido o el rol de este usuario es distinto a "enfermo"';
+  END IF;
+END//
+DELIMITER ;
+
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) 
+values ("123217","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","cuidador","12344");
