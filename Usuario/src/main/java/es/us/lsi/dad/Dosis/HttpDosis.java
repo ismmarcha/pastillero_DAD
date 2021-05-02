@@ -205,7 +205,7 @@ public class HttpDosis {
 	public void deleteRegistroDosis(RoutingContext routingContext) {
 		// Obtenemos el id del usuario contenido en la propia URL de la petición
 		String datosDosis = routingContext.getBodyAsString();
-		vertx.eventBus().request("deleteDosis", datosDosis, reply -> {
+		vertx.eventBus().request("deleteRegistroDosis", datosDosis, reply -> {
 			if (reply.succeeded()) {
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
@@ -219,7 +219,7 @@ public class HttpDosis {
 	
 	public void editRegistroDosis(RoutingContext routingContext) {
 		String datosDosis = routingContext.getBodyAsString();
-		vertx.eventBus().request("editDosis", datosDosis, reply -> {
+		vertx.eventBus().request("editRegistroDosis", datosDosis, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")

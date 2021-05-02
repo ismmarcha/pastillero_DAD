@@ -281,7 +281,6 @@ public class BDDosis {
 	public void addRegistroDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
 		consumer.handler(message -> {
-			System.out.println("HOLAAA");
 			String datosRegistro = message.body();
 			JsonObject jsonRegistro = new JsonObject(datosRegistro);
 			int id_dosis = jsonRegistro.getInteger("id_dosis");
@@ -301,16 +300,18 @@ public class BDDosis {
 	}
 	
 	public void deleteRegistroDosis() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("deleteRegistroDosis");
 		consumer.handler(message -> {
-			int id_dosis = Integer.valueOf(message.body());
-			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis)"
-					+ " VALUES("+id_dosis+")");
+			String datosRegistroDosis = message.body();
+			JsonObject jsonDosis = new JsonObject(datosRegistroDosis);
+			int id_registro_dosis= jsonDosis.getInteger("id_registro_dosis");
+			
+			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Registro_Dosis WHERE id_registro_dosis = " + id_registro_dosis + ";");
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Añadido Registro Dosis con id_dosis: "+ id_dosis);
+					message.reply("Borrado el registro Dosis " + id_registro_dosis + " .");
 				} else {
-					message.reply("ERROR AL AÑADIR EL REGISTRO DOSIS " + res.cause());
+					message.reply("ERROR AL BORRAR EL REGISTRO DOSIS " + res.cause());
 				}
 				;
 			});
@@ -318,16 +319,34 @@ public class BDDosis {
 	}
 	
 	public void editRegistroDosis() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("addRegistroDosis");
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("editRegistroDosis");
 		consumer.handler(message -> {
-			int id_dosis = Integer.valueOf(message.body());
-			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis)"
-					+ " VALUES("+id_dosis+")");
+			String datosRegistroDosis = message.body();
+			JsonObject jsonDosis = new JsonObject(datosRegistroDosis);
+			int id_registro_dosis = jsonDosis.getInteger("id_registro_dosis");
+			boolean tomada = jsonDosis.getBoolean("tomada");
+			jsonDosis.remove("id_registro_dosis");
+
+			String stringQuery = "UPDATE pastillero_dad.Registro_Dosis SET ";
+			Iterator<Entry<String, Object>> iteratorJsonDosis = jsonDosis.iterator();
+			while (iteratorJsonDosis.hasNext()) {
+				Entry<String, Object> elemento = iteratorJsonDosis.next();
+				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
+					stringQuery += elemento.getValue();
+				} else {
+					stringQuery += "'" + elemento.getValue() + "'";
+				}
+				if (iteratorJsonDosis.hasNext()) {
+					stringQuery += ", ";
+				}
+			}
+			stringQuery += "WHERE id_registro_dosis = '" + id_registro_dosis  + "';";
+			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			query.execute(res -> {
 				if (res.succeeded()) {
-					message.reply("Añadido Registro Dosis con id_dosis: "+ id_dosis);
+					message.reply("Editado el Registro Dosis");
 				} else {
-					message.reply("ERROR AL AÑADIR EL REGISTRO DOSIS " + res.cause());
+					message.reply("ERROR AL EDITAR EL REGISTRO DOSIS " + res.cause());
 				}
 				;
 			});
