@@ -8,7 +8,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 
 //2. Dosis por usuario --> HECHO Y PROBADO
-//3. Siguiente dosis por usuario -> HECHO Y PROBADO
+//3. Siguiente dosis por usuario
 //4. Dosis por día y por usuario --> HECHO Y PROBADO
 //5. Agregar pastillas a una dosis (pastilla dosis)
 //6. Registro Dosis ( cuando dosis tomada)  PENSAR (AÑADIR ID USUARIO A  REGISTRO_DOSIS)
@@ -29,9 +29,16 @@ public class HttpDosis {
 		router.get("/api/dosis/getDosisPorUsuarioYDia").handler(this::getDosisPorUsuarioYDia);
 		router.get("/api/dosis/getSiguienteDosisPorUsuario").handler(this::getSiguienteDosisPorUsuario);
 		router.post("/api/dosis/addDosis").handler(this::addDosis);
-		router.post("/api/dosis/addRegistroDosis").handler(this::addRegistroDosis);
 		router.put("/api/dosis/editDosis").handler(this::editDosis);
 		router.delete("/api/dosis").handler(this::deleteDosis);
+		
+		
+		router.get("/api/dosis/getAllRegistroDosis").handler(this::getAllRegistroDosis);
+		router.post("/api/dosis/addRegistroDosis").handler(this::addRegistroDosis);
+		router.delete("/api/dosis/deleteRegistroDosis").handler(this::deleteRegistroDosis);
+		router.put("/api/dosis/editRegistroDosis").handler(this::editRegistroDosis);
+
+		
 	}
 
 	public void getAllDosis(RoutingContext routingContext) {
@@ -148,12 +155,42 @@ public class HttpDosis {
 		});
 	}
 
+	public void editDosis(RoutingContext routingContext) {
+		String datosDosis = routingContext.getBodyAsString();
+		vertx.eventBus().request("editDosis", datosDosis, reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			}
+		});
+	}
+	
+	
+	public void getAllRegistroDosis(RoutingContext routingContext) {
+		
+		String datosUsuario = routingContext.getBodyAsString();
+		vertx.eventBus().request("getAllRegistroDosis", datosUsuario, reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			}
+		});
+	}
+	
+	
 	public void addRegistroDosis(RoutingContext routingContext) {
-		// Añadimos un usuario utilizando los datos que están dentro del body de la
-		// petición. IMPORTANTE: USAR EL BODY EN POSTMAN DE TIPO RAW
-		JsonObject datosRegistroDosis = new JsonObject(routingContext.getBodyAsString());
-		String id_dosis = String.valueOf(datosRegistroDosis.getInteger("id_dosis"));
-		vertx.eventBus().request("addRegistroDosis", id_dosis, reply -> {
+		
+		String datosDosis = routingContext.getBodyAsString();
+		
+		vertx.eventBus().request("addRegistroDosis", datosDosis, reply -> {
 			if (reply.succeeded()) {
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
@@ -164,9 +201,25 @@ public class HttpDosis {
 		});
 	}
 	
-	public void editDosis(RoutingContext routingContext) {
+	
+	public void deleteRegistroDosis(RoutingContext routingContext) {
+		// Obtenemos el id del usuario contenido en la propia URL de la petición
 		String datosDosis = routingContext.getBodyAsString();
-		vertx.eventBus().request("editDosis", datosDosis, reply -> {
+		vertx.eventBus().request("deleteRegistroDosis", datosDosis, reply -> {
+			if (reply.succeeded()) {
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			}
+		});
+	}
+	
+	
+	public void editRegistroDosis(RoutingContext routingContext) {
+		String datosDosis = routingContext.getBodyAsString();
+		vertx.eventBus().request("editRegistroDosis", datosDosis, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")

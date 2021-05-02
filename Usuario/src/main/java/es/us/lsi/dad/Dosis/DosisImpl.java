@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Dosis;
 
-import io.vertx.core.json.JsonObject; 
+import io.vertx.core.json.JsonObject;  
 import io.vertx.sqlclient.Row;
 
 public class DosisImpl {
