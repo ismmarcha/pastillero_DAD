@@ -31,6 +31,7 @@ public class BDDosis {
 		getDosisPorUsuario();
 		getDosisPorUsuarioYDia();
 		getSiguienteDosisPorUsuario();
+		getDosisPorUsuarioGroupByDia();
 		deleteDosis();
 		editDosis();
 		addDosis();
@@ -130,25 +131,40 @@ public class BDDosis {
 		});
 	}
 
+	public void getDosisPorUsuarioGroupByDia() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosisPorUsuarioGroupByDia");
+		consumer.handler(message -> {
+			JsonObject jsonBody = new JsonObject(message.body());
+			String nif = jsonBody.getString("nif");
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "';");
+			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						DosisImpl dosis = new DosisImpl(v);
+						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
+					});
+				} else {
+					resultadoJson.put("error", String.valueOf(res.cause()));
+				}
+				message.reply(resultadoJson);
+			});
+		});
+	}
+	
 	public void getSiguienteDosisPorUsuario() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisPorUsuario");
 		consumer.handler(message -> {
 			String nif = message.body();
-			/*LocalDateTime ldt = LocalDateTime.now();
-			Locale localeEs = new Locale("es", "ES");
-			String dia_semana = ldt.getDayOfWeek().getDisplayName(TextStyle.NARROW, localeEs);
-			String siguiente_dia_semana = ldt.plusDays(1).getDayOfWeek().getDisplayName(TextStyle.NARROW, localeEs);
-			LocalTime lt = LocalTime.of(ldt.getHour(), ldt.getMinute());
-			System.out.println(dia_semana);*/
 			Query<RowSet<Row>> query = mySqlClient.query(
-					"SELECT * FROM pastillero_dad.Dosis"
-					+" WHERE nif ='"+nif+"'"
-					+"AND ((now() < DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T') AND dia_semana = WEEKDAY(now()) "
-					+"OR (now() < DATE_ADD(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T'),INTERVAL 1 DAY) "
-					+"AND dia_semana = weekday(DATE_ADD(now(), INTERVAL 1 DAY))))) "
-					+"ORDER BY "
-					+"if(dia_semana = weekday(now()), TIMEDIFF(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T') , now()), "
-					+"TIMEDIFF(DATE_ADD(DATE_FORMAT(CONCAT(year(now()),'-',month(CURDATE()),'-',day(now()),' ', hora_inicio), '%Y-%m-%d %T'),INTERVAL 1 DAY), now())) LIMIT 1;");
+					"SELECT * "
+					+ "FROM Dosis "
+					+ "WHERE nif = '"+nif
+					+ "' ORDER BY "
+					+ "if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, "
+					+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), "
+					+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now())) "
+					+ " LIMIT 1;");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {

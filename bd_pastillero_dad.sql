@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS Registro_Dosis (
     id_registro_dosis INT UNSIGNED AUTO_INCREMENT ,
 	id_dosis INT UNSIGNED,
 
-    tomada BOOLEAN NOT NULL,
+	fecha_dosis TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    tomada BOOLEAN DEFAULT 0 NOT NULL,
     
     PRIMARY KEY(id_registro_dosis),
 	FOREIGN KEY (id_dosis) REFERENCES Dosis(id_dosis) ON DELETE CASCADE
@@ -82,19 +83,21 @@ CREATE TABLE IF NOT EXISTS Registro_Dosis (
 insert into Pastillero (id_pastillero , alias) values ('192R5T',"Pastillero papá");
 
 insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol) values ("12344","192R5T","Ismael","Mamel","Ismaelito22","admin@admin.es","cuidador");
-insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) values ("12313","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","enfermo","12344");
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) 
+values ("12311","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","cuidador","12344");
+
+select * from Usuario;
 
 insert into Pastilla (nombre,descripcion,peso) values ("Paracetamol","Comprimidos EPG","100");
 insert into Pastilla (nombre,descripcion,peso) values ("Frenadol","Comprimidos EPG","100");
 
-insert into Dosis (hora_inicio,dia_semana,nif,observacion) values ("15:00",1,"12344","Recordar cita médica, o recordar que se lo tome en un cierto orden");
+insert into Dosis (hora_inicio,dia_semana,nif,observacion) values ("13:00",2,"12344","Recordar cita médica, o recordar que se lo tome en un cierto orden");
 
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","1",0.5);
 
+#insert into Registro_Dosis (fecha_caducidad,tomada,id_dosis) values (date(12/12/2021),TRUE,"1");
 
 insert into Registro_Dosis (tomada,id_dosis) values (TRUE,"1");
-
-
 
 select * from Pastilla_Dosis;
 SELECT * FROM pastillero_dad.Pastilla;
@@ -102,25 +105,144 @@ select * from Dosis;
 
 SELECT * FROM pastillero_dad.Usuario;
 
+##HAY QUE PROBAR ESTA BARBARIDAD BIEN QUE MADRE MÍA 
+SELECT *
+FROM Dosis 
+WHERE nif = '12344'
+ORDER BY
+if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0,  
+TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), 
+TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()));
 
-SELECT * FROM pastillero_dad.Dosis WHERE nif = 1 AND hora_inicio = '15:00' AND dia_semana = 'L';
-SELECT * FROM pastillero_dad.Pastilla WHERE id_pastilla IN (select id_pastilla from pastillero_dad.Pastilla_Dosis WHERE id_dosis = 1);
-SELECT Pastilla.id_pastilla ,nombre ,descripcion ,peso FROM pastillero_dad.Pastilla LEFT JOIN pastillero_dad.Pastilla_Dosis ON Pastilla.id_pastilla = pastilla_dosis.id_pastilla WHERE pastilla_dosis.id_pastilla = 1 ;
+#TRIGGER PARA EVITAR QUE HAYA MÁS DE 28 DOSIS POR USUARIO
+DROP FUNCTION IF EXISTS numeroDosisUsuarioSuperado;
 
-DELETE FROM pastillero_dad.Pastilla_Dosis WHERE Id_pastilla = 1 AND Id_Dosis = 1;
+DELIMITER //
+CREATE FUNCTION numeroDosisUsuarioSuperado (nifIn VARCHAR(9))
+	RETURNS bool
+    READS SQL DATA
+	DETERMINISTIC
+BEGIN
+	DECLARE max bool;
+    DECLARE numeroDosis INT;
+    
+	SELECT COUNT(*)
+ 	INTO numeroDosis
+    FROM Dosis
+    WHERE nif = nifIn;
+    
+    if(numeroDosis >= 28)
+    THEN
+		SET max = true;
+    ELSE 
+		SET max = false;
+    END IF;
+    
+    RETURN max;
+END //
+DELIMITER ;
 
-SELECT * FROM Registro_dosis;
+SELECT numeroDosisUsuarioSuperado('12344');
 
-SELECT * FROM pastillero_dad.Dosis WHERE nif = 1 AND hora_inicio = '15:00' AND dia_semana = 'L';
+DROP TRIGGER IF EXISTS numeroMaximoDosis;
 
-SELECT * FROM pastillero_dad.Dosis WHERE nif = '12344' AND  ((hora_inicio > '12:25' AND dia_semana ='D') OR (dia_semana ='L')) ORDER BY FIELD(dia_semana, 'L', 'M', 'X', 'J', 'V', 'S', 'D') ASC, hora_inicio;
-select str_to_date(CONCAT(year(now()),"-",month(CURDATE()),"-",day(now())), "%Y %m %d");
-select DATE_FORMAT(CONCAT(year(now()),"-",month(CURDATE()),"-",day(now())," ", Dosis.hora_inicio), "%Y-%m-%d %T") from Dosis;
+DELIMITER //
+CREATE TRIGGER numeroMaximoDosis
+BEFORE INSERT ON Dosis
+FOR EACH ROW
+BEGIN
+  IF numeroDosisUsuarioSuperado(NEW.nif) != 0
+    THEN
+      signal sqlstate '45000' set message_text = 'Se ha superado el máximo de 28 de dosis para este usuario';
+  END IF;
+END//
+DELIMITER ;
 
+SELECT COUNT(*)
+ 	FROM Dosis
+    WHERE nif = '12344';
+    
+##TRIGGER PARA EVITAR QUE UN ENFERMO TENGO ENFERMOS A TU CUIDADO
+DROP FUNCTION IF EXISTS permiteCuidador;
 
+DELIMITER //
+CREATE FUNCTION permiteCuidador (nifCuidadorIn VARCHAR(9), rolIn VARCHAR(25))
+	RETURNS bool
+    READS SQL DATA
+	DETERMINISTIC
+BEGIN
+    DECLARE cuidador bool;
+    DECLARE rolCuidador VARCHAR(25);
+    
+    SELECT rol
+    INTO rolCuidador
+    FROM Usuario
+    WHERE nif = nifCuidadorIn;
+    
+	#signal sqlstate '45000' set message_text = rolCuidador;
+    
+    if(rolCuidador = 'cuidador' AND rolIn = 'enfermo')
+    THEN
+		SET cuidador = true;
+    ELSE 
+		SET cuidador = false;
+    END IF;
+    
+    RETURN cuidador;
+END //
+DELIMITER ;
 
+SELECT * from usuario;
 
-SELECT Registro_Dosis.id_registro_dosis, Registro_Dosis.id_dosis, Registro_Dosis.tomada FROM pastillero_dad.Registro_Dosis LEFT JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = "12344" ;
+SELECT permiteCuidador('12344', 'cuidador');
 
+DROP TRIGGER IF EXISTS triggerPermiteCuidador;
 
+DELIMITER //
+CREATE TRIGGER triggerPermiteCuidador
+BEFORE INSERT ON Usuario
+FOR EACH ROW
+BEGIN
+  IF permiteCuidador(NEW.id_cuidador, NEW.rol) = 0
+    THEN
+      signal sqlstate '45000' set message_text = 'El nif del cuidador no pertenece a un cuidador válido o el rol de este usuario es distinto a "enfermo"';
+  END IF;
+END//
+DELIMITER ;
 
+##TRIGGER PARA EVITAR NIF INCORRECTO
+DROP FUNCTION IF EXISTS nifValido;
+
+DELIMITER //
+CREATE FUNCTION nifValido (nif VARCHAR(9))
+	RETURNS bool
+    READS SQL DATA
+	DETERMINISTIC
+BEGIN
+    DECLARE valido bool;
+	SET valido = true;
+    if(nif not regexp '([a-z]|[A-Z]|[0-9])[0-9]{7}([a-z]|[A-Z]|[0-9])')
+    THEN
+		SET valido = false;
+    END IF;
+        
+    RETURN valido;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS triggerNifValido;
+
+DELIMITER //
+CREATE TRIGGER triggerNifValido
+BEFORE INSERT ON Usuario
+FOR EACH ROW
+BEGIN
+  IF nifValido(NEW.nif) = 0
+    THEN
+      signal sqlstate '45000' set message_text = "Formato de NIF inválido";
+  END IF;
+END//
+DELIMITER ;
+
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) 
+values ("12345678A","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","enfermo","12344");
