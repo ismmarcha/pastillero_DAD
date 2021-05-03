@@ -41,7 +41,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
 
-		httpServer.requestHandler(router::handle).listen(8090, res -> {
+		httpServer.requestHandler(router::handle).listen(8082, res -> {
 
 			if (res.succeeded()) {
 				startFuture.complete();
