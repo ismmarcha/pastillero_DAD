@@ -221,7 +221,7 @@ CREATE FUNCTION nifValido (nif VARCHAR(9))
 BEGIN
     DECLARE valido bool;
 	SET valido = true;
-    if(CHAR_LENGTH(nif) != 9 OR SUBSTRING(nif, 1, 8) RLIKE '[A-Z]' OR SUBSTRING(nif, 9,1) REGEXP '^[0-9]+$')
+    if(nif not regexp '([a-z]|[A-Z]|[0-9])[0-9]{7}([a-z]|[A-Z]|[0-9])')
     THEN
 		SET valido = false;
     END IF;
@@ -243,3 +243,6 @@ BEGIN
   END IF;
 END//
 DELIMITER ;
+
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) 
+values ("12345678A","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","enfermo","12344");
