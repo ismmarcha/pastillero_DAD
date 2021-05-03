@@ -210,5 +210,36 @@ BEGIN
 END//
 DELIMITER ;
 
-insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) 
-values ("123217","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","cuidador","12344");
+##TRIGGER PARA EVITAR NIF INCORRECTO
+DROP FUNCTION IF EXISTS nifValido;
+
+DELIMITER //
+CREATE FUNCTION nifValido (nif VARCHAR(9))
+	RETURNS bool
+    READS SQL DATA
+	DETERMINISTIC
+BEGIN
+    DECLARE valido bool;
+	SET valido = true;
+    if(CHAR_LENGTH(nif) != 9 OR SUBSTRING(nif, 1, 8) RLIKE '[A-Z]' OR SUBSTRING(nif, 9,1) REGEXP '^[0-9]+$')
+    THEN
+		SET valido = false;
+    END IF;
+        
+    RETURN valido;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS triggerNifValido;
+
+DELIMITER //
+CREATE TRIGGER triggerNifValido
+BEFORE INSERT ON Usuario
+FOR EACH ROW
+BEGIN
+  IF nifValido(NEW.nif) = 0
+    THEN
+      signal sqlstate '45000' set message_text = "Formato de NIF inválido";
+  END IF;
+END//
+DELIMITER ;

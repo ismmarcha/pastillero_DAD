@@ -31,6 +31,7 @@ public class BDDosis {
 		getDosisPorUsuario();
 		getDosisPorUsuarioYDia();
 		getSiguienteDosisPorUsuario();
+		getDosisPorUsuarioGroupByDia();
 		deleteDosis();
 		editDosis();
 		addDosis();
@@ -130,6 +131,27 @@ public class BDDosis {
 		});
 	}
 
+	public void getDosisPorUsuarioGroupByDia() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosisPorUsuarioGroupByDia");
+		consumer.handler(message -> {
+			JsonObject jsonBody = new JsonObject(message.body());
+			String nif = jsonBody.getString("nif");
+			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "';");
+			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
+				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						DosisImpl dosis = new DosisImpl(v);
+						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
+					});
+				} else {
+					resultadoJson.put("error", String.valueOf(res.cause()));
+				}
+				message.reply(resultadoJson);
+			});
+		});
+	}
+	
 	public void getSiguienteDosisPorUsuario() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisPorUsuario");
 		consumer.handler(message -> {
