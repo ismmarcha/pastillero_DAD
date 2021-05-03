@@ -43,7 +43,7 @@ public class BDPastillero {
 						resultadoJson.put(String.valueOf(pastillero.getId_pastillero()), pastillero.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error", "ERROR AL MOSTRAR TODOS LOS PASTILLEROS"+" ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -66,7 +66,7 @@ public class BDPastillero {
 						resultadoJson.put(String.valueOf(pastillero.getId_pastillero()), pastillero.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error", "ERROR AL MOSTRAR EL PASTILLERO CON ID: "+ Id_pastillero +" ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -90,7 +90,7 @@ public class BDPastillero {
 						resultadoJson.put(String.valueOf(usuario.getNif()), usuario.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error", "ERROR AL OBTENER LOS USUARIOS DEL PASTILLERO CON ID: "+ Id_pastillero +" ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -107,12 +107,15 @@ public class BDPastillero {
 			Query<RowSet<Row>> query = mySqlClient
 					.query("DELETE FROM pastillero_dad.Pastillero WHERE id_pastillero = '" + Id_pastillero + "';");
 			query.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Borrado el pastillero " + Id_pastillero);
+					res.result().forEach(v -> {
+						json.put(Id_pastillero, "BORRADO EL PASTILLERO CON ID:  " + Id_pastillero);
+					});
 				} else {
-					message.reply("ERROR AL BORRAR EL PASTILLERO " + res.cause());
+					json.put("error", "ERROR AL BORRAR EL PASTILLERO CON ID: "+ Id_pastillero+" ."+ String.valueOf(res.cause()) );
 				}
-				;
+				message.reply(json);
 			});
 		});
 	}
@@ -125,12 +128,15 @@ public class BDPastillero {
 			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Pastillero(id_pastillero, alias) VALUES ('"
 					+ pastillero.getId_pastillero() + "','" + pastillero.getAlias() + "');");
 			query.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Añadido el pastillero " + pastillero.getId_pastillero());
+					res.result().forEach(v -> {
+						json.put(pastillero.getId_pastillero(), "AÑADIDO EL PASTILLERO CON ID:  " + pastillero.getId_pastillero());
+				});
 				} else {
-					message.reply("ERROR AL AÑADIR EL PASTILLERO " + res.cause());
+					json.put("error", "ERROR AL AÑADIR EL PASTILLERO CON ID: "+ pastillero.getId_pastillero());
 				}
-				;
+				message.reply(json);
 			});
 		});
 	}
@@ -148,6 +154,7 @@ public class BDPastillero {
 			Iterator<Entry<String, Object>> iteratorJsonPastillero = jsonPastillero.iterator();
 			while (iteratorJsonPastillero.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonPastillero.next();
+				stringQuery += elemento.getKey() + " = ";
 				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
 					stringQuery += elemento.getValue();
 				} else {
@@ -162,12 +169,16 @@ public class BDPastillero {
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			System.out.println(query);
 			query.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Editado el pastillero");
+					res.result().forEach(v -> {
+						json.put(id_pastillero, "EDITADO EL PASTILLERO CON ID:  " + id_pastillero);
+				});
 				} else {
-					message.reply("ERROR AL EDITAR EL USUARIO " + res.cause());
+					json.put("error", "ERROR AL EDITAR EL PASTILLERO CON ID: "+ id_pastillero);
 				}
-				;
+				message.reply(json);
+
 			});
 		});
 	}

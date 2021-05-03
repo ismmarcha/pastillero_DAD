@@ -44,7 +44,7 @@ public class BDUsuario {
 						json.put(String.valueOf(usuario.getNif()), usuario.getJson());
 					});
 				} else {
-					json.put("error", String.valueOf(res.cause()));
+					json.put("error", "ERROR AL OBTENER TODOS LOS USUARIOS: " +" ."+ String.valueOf(res.cause()));
 				}
 				message.reply(json);
 			});
@@ -66,7 +66,7 @@ public class BDUsuario {
 						json.put(String.valueOf(v.getValue("nif")), v.toJson());
 					});
 				} else {
-					json.put("No existe usuario con ese NIF", String.valueOf(res.cause()));
+					json.put("error", "ERROR AL OBTENER EL USUARIO CON NIF: " + usuarionif +" ."+ String.valueOf(res.cause()));
 
 				}
 				message.reply(json);
@@ -78,7 +78,6 @@ public class BDUsuario {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getEnfermosPorCuidador");
 		consumer.handler(message -> {
 			String Id_cuidador = message.body();
-			System.out.println("HOLA 2");
 			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Usuario WHERE id_cuidador = "+ Id_cuidador +";");
 			query.execute(res -> {
 				JsonObject json = new JsonObject();
@@ -88,7 +87,7 @@ public class BDUsuario {
 						json.put(String.valueOf(usuario.getNif()), usuario.getJson());
 					});
 				} else {
-					json.put("error", String.valueOf(res.cause()));
+					json.put("error", "ERROR AL OBTENER LOS PACIENTES DEL CUIDADOR CON ID: "+ Id_cuidador +" ."+ String.valueOf(res.cause()));
 				}
 				message.reply(json);
 			});
@@ -99,15 +98,19 @@ public class BDUsuario {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("deleteUsuario");
 		consumer.handler(message -> {
 			String nif = message.body();
-			Query<RowSet<Row>> query = mySqlClient
-					.query("DELETE FROM pastillero_dad.Usuario WHERE NIF = '" + nif + "';");
+			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Usuario WHERE NIF = '" + nif + "';");
 			query.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Borrado del usuario " + nif);
+					res.result().forEach(v -> {
+						
+						json.put(nif,"USUARIO BORRADO CON EL NIF " + nif);
+						
+					});
 				} else {
-					message.reply("ERROR AL BORRAR EL USUARIO " + res.cause());
+					json.put("error", "ERROR AL BORRAR EL USUARIO CON NIF: "+ nif +" ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(json);
 			});
 		});
 	}
@@ -118,11 +121,10 @@ public class BDUsuario {
 			String datosUsuario = message.body();
 			JsonObject jsonUsuario = new JsonObject(datosUsuario);
 			String stringQuery = "INSERT INTO pastillero_dad.Usuario(nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) VALUES (";
-
-			System.out.println(stringQuery);
 			Iterator<Entry<String, Object>> iteratorJsonUsuario = jsonUsuario.iterator();
 			while (iteratorJsonUsuario.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonUsuario.next();
+				
 				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
 					stringQuery += elemento.getValue();
 				} else {
@@ -133,17 +135,17 @@ public class BDUsuario {
 				}
 			}
 			stringQuery += ");";
-
-			System.out.println(stringQuery);
-
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			query.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Añadido el usuario " + jsonUsuario.getString("firstname"));
+					res.result().forEach(v -> {
+						json.put(jsonUsuario.getString("nif"), "AÑADIDO EL USUARIO  " + jsonUsuario.getString("firstname") + " con DNI: " + jsonUsuario.getString("nif"));
+					});
 				} else {
-					message.reply("ERROR AL AÑADIR EL USUARIO " + res.cause());
+					json.put("error", "ERROR AL AÑADIR EL USUARIO CON NIF: "+ jsonUsuario.getString("nif") +" ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(json);
 			});
 		});
 	}
@@ -153,16 +155,14 @@ public class BDUsuario {
 		consumer.handler(message -> {
 			String datosUsuario = message.body();
 			JsonObject jsonUsuario = new JsonObject(datosUsuario);
-
 			String nif = jsonUsuario.getString("nif");
 			jsonUsuario.remove(nif);
 			String stringQuery = "UPDATE pastillero_dad.Usuario SET ";
-
-			System.out.println(jsonUsuario);
-
 			Iterator<Entry<String, Object>> iteratorJsonUsuario = jsonUsuario.iterator();
+			
 			while (iteratorJsonUsuario.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonUsuario.next();
+				stringQuery += elemento.getKey() + " = ";
 				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
 					stringQuery += elemento.getValue();
 				} else {
@@ -178,12 +178,15 @@ public class BDUsuario {
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 
 			query.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Editado el usuario ");
+					res.result().forEach(v -> {
+						json.put(nif, "EDITADO EL USUARIO EL USUARIO  " + jsonUsuario.getString("firstname") + " con DNI: " + nif);
+					});
 				} else {
-					message.reply("ERROR AL EDITAR EL USUARIO " + res.cause());
+					json.put("error", "ERROR AL EDITAR EL USUARIO CON NIF: "+ nif +" ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(json);
 			});
 		});
 	}

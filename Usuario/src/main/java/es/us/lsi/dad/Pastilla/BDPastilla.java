@@ -49,7 +49,7 @@ public class BDPastilla {
 						resultadoJson.put(String.valueOf(pastilla.getId_pastilla()), pastilla.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error","ERROR AL OBTENER TODAS LAS PASTILLAS"+" ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -72,7 +72,7 @@ public class BDPastilla {
 						resultadoJson.put(String.valueOf(pastilla.getId_pastilla()), pastilla.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error", "ERROR AL OBTENER LA PASTILLA CON ID: " +Id_pastilla+ " ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -89,18 +89,19 @@ public class BDPastilla {
 			Query<RowSet<Row>> query = mySqlClient
 					.query("DELETE FROM pastillero_dad.Pastilla WHERE Id_pastilla = " + Id_pastilla + ";");
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Borrado la Pastilla " + Id_pastilla + " .");
+					res.result().forEach(v -> {
+						resultadoJson.put(String.valueOf(Id_pastilla), "BORRADA LA PASTILLA:  " + jsonPastilla.getString("nombre") + " E ID: " + Id_pastilla );
+					});
 				} else {
-					message.reply("ERROR AL BORRAR LA PASTILLA " + res.cause());
+					resultadoJson.put("error", "ERROR AL BORRAR LA PASTILLA CON ID: "+ String.valueOf(Id_pastilla) + " ."+ String.valueOf(res.cause()));
+
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
-
-
-	
 	public void addPastilla() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addPastilla");
 		consumer.handler(message -> {
@@ -109,12 +110,15 @@ public class BDPastilla {
 			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Pastilla (nombre,descripcion,peso)" + " VALUES('"
 					+ pastilla.getNombre() + "','" + pastilla.getDescripcion() + "'," + pastilla.getPeso() + ");");
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Añadida la pastilla " + pastilla.getNombre() + " " + pastilla.getPeso() + " .");
+					res.result().forEach(v -> {
+						resultadoJson.put(pastilla.getNombre(), "AÑADIDA LA PASTILLA:   " + pastilla.getNombre()  + pastilla.getPeso() + " ." );
+					});
 				} else {
-					message.reply("ERROR AL AÑADIR LA PASTILLA " + res.cause());
+					resultadoJson.put("error", "ERROR AL AÑADIR LA PASTILLA CON ID: "+ String.valueOf(pastilla.getId_pastilla()) + " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -133,6 +137,7 @@ public class BDPastilla {
 			Iterator<Entry<String, Object>> iteratorJsonPastilla = jsonPastilla.iterator();
 			while (iteratorJsonPastilla.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonPastilla.next();
+				stringQuery += elemento.getKey() + " = ";
 				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
 					stringQuery += elemento.getValue();
 				} else {
@@ -147,12 +152,15 @@ public class BDPastilla {
 			System.out.println(stringQuery);
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Editada la Pastilla");
+					res.result().forEach(v -> {
+						resultadoJson.put(id_pastilla, "EDITADA LA PASTILLA:   " + jsonPastilla.getString("nombre")   + " ." );
+					});
 				} else {
-					message.reply("ERROR AL EDITAR LA PASTILLA " + res.cause());
+					resultadoJson.put("error", "ERROR AL EDITAR LA PASTILLA CON ID: "+ id_pastilla + " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -163,7 +171,6 @@ public class BDPastilla {
 			String datosPastilla = message.body();
 			JsonObject jsonPastilla = new JsonObject(datosPastilla);
 			int Id_dosis = jsonPastilla.getInteger("id_dosis");
-			System.out.println("HOLA");
 			Query<RowSet<Row>> query = mySqlClient
 					.query("SELECT pastillero_dad.Pastilla.id_pastilla ,nombre ,descripcion ,peso FROM pastillero_dad.Pastilla LEFT JOIN pastillero_dad.Pastilla_Dosis "
 							+ "ON Pastilla.id_pastilla = pastilla_dosis.id_pastilla WHERE pastilla_dosis.id_pastilla ="+ Id_dosis + ";");
@@ -175,7 +182,7 @@ public class BDPastilla {
 						resultadoJson.put(String.valueOf(pastilla.getId_pastilla()), pastilla.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error", "ERROR AL OBTENER LAS PASTILLAS DE LA DOSIS CON ID: "+ Id_dosis + " ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -196,12 +203,16 @@ public class BDPastilla {
 					+ id_pastilla + "','" + id_dosis + "'," + cantidad + ");" );
 		
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Añadida la pastilla " + id_pastilla + " a la dosis " + id_dosis + " .");
+					res.result().forEach(v -> {
+						resultadoJson.put(String.valueOf(id_pastilla), "AÑADIDA LA PASTILLA CON ID: " + String.valueOf(id_pastilla)+ " A LA DOSIS CON ID: "+  String.valueOf(id_dosis)  + " ." );
+
+					});
 				} else {
-					message.reply("ERROR AL AÑADIR LA PASTILLA " + res.cause());
+					resultadoJson.put("error", "ERROR AL AÑADIR LA PASTILLA CON ID: "+ String.valueOf(id_pastilla)+ "A LA DOSIS CON ID: "+ String.valueOf(id_dosis) + " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -217,12 +228,16 @@ public class BDPastilla {
 			Query<RowSet<Row>> query = mySqlClient
 					.query("DELETE FROM pastillero_dad.Pastilla_Dosis WHERE Id_pastilla = " + Id_pastilla + " AND Id_Dosis =" + Id_dosis + " ;");
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Borrado la Pastilla " + Id_pastilla + " de la dosis " + Id_dosis + " .");
+					res.result().forEach(v -> {
+						resultadoJson.put(String.valueOf(Id_pastilla), "BORRADA LA PASTILLA CON ID: " + String.valueOf(Id_pastilla)+ " A LA DOSIS CON ID: "+  String.valueOf(Id_dosis)  + " ." );
+
+					});
 				} else {
-					message.reply("ERROR AL BORRAR LA PASTILLA " + res.cause());
+					resultadoJson.put("error", "ERROR AL BORRAR LA PASTILLA CON ID: "+ String.valueOf(Id_pastilla)+ "A LA DOSIS CON ID: "+ String.valueOf(Id_dosis) + " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -256,15 +271,18 @@ public class BDPastilla {
 			}
 			stringQuery += " WHERE id_pastilla = " + id_pastilla + " AND id_dosis = "+ id_dosis +" ;";
 
-			System.out.println(stringQuery);
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Editada la Pastilla" + id_pastilla +" en la Dosis "+ id_dosis);
+					res.result().forEach(v -> {
+						resultadoJson.put(String.valueOf(id_pastilla), "EDITADA LA PASTILLA CON ID: " + String.valueOf(id_pastilla)+ " EN LA DOSIS CON ID: "+  String.valueOf(id_dosis)  + " ." );
+
+					});
 				} else {
-					message.reply("ERROR AL EDITAR LA PASTILLA " + res.cause());
+					resultadoJson.put("error", "ERROR AL EDITAR LA PASTILLA CON ID: "+ String.valueOf(id_pastilla)+ "A LA DOSIS CON ID: "+ String.valueOf(id_dosis) + " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -291,7 +309,7 @@ public class BDPastilla {
 						resultadoJson.put(String.valueOf(pastilla.getId_pastilla()), pastilla.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error", "ERROR AL OBTENER LAS PASTILLAS DEL USUARIO CON NIF: "+ nif+ " ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});

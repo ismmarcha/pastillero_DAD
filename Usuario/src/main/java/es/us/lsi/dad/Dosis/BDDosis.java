@@ -55,7 +55,7 @@ public class BDDosis {
 						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error","ERROR AL OBTENER TODAS LAS DOSIS"+" ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -80,7 +80,7 @@ public class BDDosis {
 						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error","ERROR AL OBTENER LA DOSIS DEL USUARIO CON DNI: "+nif+ ",CON HORA DE INICIO:"+hora_inicio+ " Y DÍA DE LA SEMANA:"+dia_semana+ " ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -101,7 +101,7 @@ public class BDDosis {
 						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error","ERROR AL OBTENER LAS DOSIS DEL USUARIO CON DNI: "+nif+ " ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -124,7 +124,7 @@ public class BDDosis {
 						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error","ERROR AL OBTENER LA DOSIS DEL USUARIO CON DNI: "+nif+  " DEL DÍA : "+ dia_semana +" ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -145,7 +145,7 @@ public class BDDosis {
 						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error","ERROR AL OBTENER LAS DOSIS DEL USUARIO CON DNI: "+nif+ " ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -173,7 +173,7 @@ public class BDDosis {
 						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
 					});
 				} else {
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error","ERROR AL OBTENER LA SIGUIENTE DOSIS DEL USUARIO CON DNI: "+nif+ " ."+ String.valueOf(res.cause()));
 				}
 				message.reply(resultadoJson);
 			});
@@ -191,12 +191,15 @@ public class BDDosis {
 			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Dosis WHERE nif = '" + nif
 					+ "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Borrado la dosis " + nif + " " + hora_inicio + " " + dia_semana);
+					res.result().forEach(v -> {
+						resultadoJson.put(nif, "BORRADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+dia_semana );
+					});
 				} else {
-					message.reply("ERROR AL BORRAR LA DOSIS " + res.cause());
+					resultadoJson.put("error", "ERROR AL BORRAR LA DOSIS CON NIF: "+ nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+dia_semana+ " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -209,12 +212,17 @@ public class BDDosis {
 					+ " VALUES('" + dosis.getHora_inicio() + "','" + dosis.getDia_semana() + "','" + dosis.getnif()
 					+ "','" + dosis.getObservacion() + "');");
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
+					res.result().forEach(v -> {
+						resultadoJson.put(dosis.getnif(), "AÑADIDA LA DOSIS DEL USUARIO CON NIF:  " + dosis.getnif() + " HORA DE INICIO: " +  dosis.getHora_inicio() + " Y DIA DE LA SEMANA:  "+ dosis.getDia_semana() );
+					});
+					
 					message.reply("Añadida la dosis " + dosis.getnif() + " " + dosis.getDia_semana() + " " + dosis);
 				} else {
-					message.reply("ERROR AL AÑADIR EL Dosis " + res.cause());
+					resultadoJson.put("error", "ERROR AL AÑADIR LA DOSIS CON NIF: "+ dosis.getnif() + " HORA DE INICIO: " + dosis.getHora_inicio() + " Y DIA DE LA SEMANA:  "+dosis.getDia_semana()+ " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -235,6 +243,7 @@ public class BDDosis {
 			Iterator<Entry<String, Object>> iteratorJsonDosis = jsonDosis.iterator();
 			while (iteratorJsonDosis.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonDosis.next();
+				stringQuery += elemento.getKey() + " = ";
 				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
 					stringQuery += elemento.getValue();
 				} else {
@@ -248,12 +257,16 @@ public class BDDosis {
 					+ dia_semana + "';";
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Editado el Dosis");
+					res.result().forEach(v -> {
+						resultadoJson.put(nif, "EDITADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " +  hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana );
+					});
+					
 				} else {
-					message.reply("ERROR AL EDITAR EL USUARIO " + res.cause());
+					resultadoJson.put("error", "ERROR AL EDITAR LA DOSIS CON NIF: "+ nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana+ " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -265,7 +278,6 @@ public class BDDosis {
 			String datosUsuario = message.body();
 			JsonObject jsonUsuario = new JsonObject(datosUsuario);
 			String nif = jsonUsuario.getString("nif");
-			System.out.println(nif);
 			
 			Query<RowSet<Row>> query = mySqlClient.query("SELECT Registro_Dosis.id_registro_dosis, Registro_Dosis.id_dosis, Registro_Dosis.tomada FROM pastillero_dad.Registro_Dosis "
 					+ "JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = "+ nif + ";" );
@@ -275,8 +287,6 @@ public class BDDosis {
 				
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					
-					
 					res.result().forEach(v -> {
 						
 						RegistroDosisImpl RegistroDosis = new RegistroDosisImpl(v);
@@ -284,11 +294,8 @@ public class BDDosis {
 						
 					});
 				} else {
-					
-
-					resultadoJson.put("error", String.valueOf(res.cause()));
+					resultadoJson.put("error", "ERROR AL OBTENER TODOS LOS REGISTROS DE LA DOSIS DEL USUARIO CON NIF: "+ nif+ " ."+ String.valueOf(res.cause()));
 				}
-				 
 				message.reply(resultadoJson);
 			});
 		});
@@ -305,12 +312,17 @@ public class BDDosis {
 			Query<RowSet<Row>> query = mySqlClient.query("INSERT INTO Registro_Dosis (id_dosis,tomada)" + " VALUES("
 					+ id_dosis + "," + tomada  + ");");
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Añadido el registro de la dosis " + id_dosis + " .");
+					res.result().forEach(v -> {
+						
+						resultadoJson.put(String.valueOf(id_dosis), "AÑADIDO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_dosis) + " .");
+
+					});
 				} else {
-					message.reply("ERROR AL AÑADIR EL REGISTRO DE LA DOSIS " + res.cause());
+					resultadoJson.put("error", "ERROR AL AÑADIR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_dosis) + " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -324,12 +336,18 @@ public class BDDosis {
 			
 			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Registro_Dosis WHERE id_registro_dosis = " + id_registro_dosis + ";");
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
+
 				if (res.succeeded()) {
-					message.reply("Borrado el registro Dosis " + id_registro_dosis + " .");
+					res.result().forEach(v -> {
+						
+						resultadoJson.put(String.valueOf(id_registro_dosis), "BORRADO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_registro_dosis) + " .");
+
+					});
 				} else {
-					message.reply("ERROR AL BORRAR EL REGISTRO DOSIS " + res.cause());
+					resultadoJson.put("error", "ERROR AL BORRAR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_registro_dosis) + " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -340,13 +358,13 @@ public class BDDosis {
 			String datosRegistroDosis = message.body();
 			JsonObject jsonDosis = new JsonObject(datosRegistroDosis);
 			int id_registro_dosis = jsonDosis.getInteger("id_registro_dosis");
-			boolean tomada = jsonDosis.getBoolean("tomada");
 			jsonDosis.remove("id_registro_dosis");
 
 			String stringQuery = "UPDATE pastillero_dad.Registro_Dosis SET ";
 			Iterator<Entry<String, Object>> iteratorJsonDosis = jsonDosis.iterator();
 			while (iteratorJsonDosis.hasNext()) {
 				Entry<String, Object> elemento = iteratorJsonDosis.next();
+				stringQuery += elemento.getKey() + " = ";
 				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
 					stringQuery += elemento.getValue();
 				} else {
@@ -356,15 +374,21 @@ public class BDDosis {
 					stringQuery += ", ";
 				}
 			}
-			stringQuery += "WHERE id_registro_dosis = '" + id_registro_dosis  + "';";
+			stringQuery += " WHERE id_registro_dosis = " + id_registro_dosis  + ";";
+			System.out.println(stringQuery);
 			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
 			query.execute(res -> {
+				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					message.reply("Editado el Registro Dosis");
+					res.result().forEach(v -> {
+						
+						resultadoJson.put(String.valueOf(id_registro_dosis), "EDITADO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_registro_dosis) + " .");
+
+					});
 				} else {
-					message.reply("ERROR AL EDITAR EL REGISTRO DOSIS " + res.cause());
+					resultadoJson.put("error", "ERROR AL EDITAR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_registro_dosis) + " ."+ String.valueOf(res.cause()));
 				}
-				;
+				message.reply(resultadoJson);
 			});
 		});
 	}
