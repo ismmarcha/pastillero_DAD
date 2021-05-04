@@ -110,7 +110,6 @@ public class HttpPastilla {
 	}
 	
 	public void getPastillaPorDosis(RoutingContext routingContext) {
-		System.out.println("HOLA345");
 		String datosPastilla = routingContext.getBodyAsString();
 		vertx.eventBus().request("getPastillaPorDosis", datosPastilla, reply -> {
 			if (reply.succeeded()) {

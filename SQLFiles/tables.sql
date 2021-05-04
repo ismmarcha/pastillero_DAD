@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS Pastilla (
     descripcion VARCHAR(300) ,
     peso DOUBLE,
     
-     PRIMARY KEY ( id_pastilla)
+     PRIMARY KEY ( id_pastilla),
+     UNIQUE (nombre,peso)
 );
 
 CREATE TABLE IF NOT EXISTS Dosis (

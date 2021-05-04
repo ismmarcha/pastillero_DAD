@@ -88,7 +88,7 @@ public class BDDosis {
 		consumer.handler(message -> {
 			String nif = message.body();
 			Query<RowSet<Row>> query = mySqlClient
-					.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "';");
+					.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = " + nif + ";");
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
@@ -189,9 +189,7 @@ public class BDDosis {
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					res.result().forEach(v -> {
 						resultadoJson.put(nif, "BORRADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+dia_semana );
-					});
 				} else {
 					resultadoJson.put("error", "ERROR AL BORRAR LA DOSIS CON NIF: "+ nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+dia_semana+ " ."+ String.valueOf(res.cause()));
 				}
@@ -210,11 +208,9 @@ public class BDDosis {
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					res.result().forEach(v -> {
-						resultadoJson.put(dosis.getnif(), "AÑADIDA LA DOSIS DEL USUARIO CON NIF:  " + dosis.getnif() + " HORA DE INICIO: " +  dosis.getHora_inicio() + " Y DIA DE LA SEMANA:  "+ dosis.getDia_semana() );
-					});
 					
-					message.reply("Añadida la dosis " + dosis.getnif() + " " + dosis.getDia_semana() + " " + dosis);
+						resultadoJson.put(dosis.getnif(), "AÑADIDA LA DOSIS DEL USUARIO CON NIF:  " + dosis.getnif() + " HORA DE INICIO: " +  dosis.getHora_inicio() + " Y DIA DE LA SEMANA:  "+ dosis.getDia_semana() );
+	
 				} else {
 					resultadoJson.put("error", "ERROR AL AÑADIR LA DOSIS CON NIF: "+ dosis.getnif() + " HORA DE INICIO: " + dosis.getHora_inicio() + " Y DIA DE LA SEMANA:  "+dosis.getDia_semana()+ " ."+ String.valueOf(res.cause()));
 				}
@@ -255,10 +251,8 @@ public class BDDosis {
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					res.result().forEach(v -> {
-						resultadoJson.put(nif, "EDITADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " +  hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana );
-					});
 					
+						resultadoJson.put(nif, "EDITADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " +  hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana );
 				} else {
 					resultadoJson.put("error", "ERROR AL EDITAR LA DOSIS CON NIF: "+ nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana+ " ."+ String.valueOf(res.cause()));
 				}
@@ -310,11 +304,7 @@ public class BDDosis {
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					res.result().forEach(v -> {
-						
 						resultadoJson.put(String.valueOf(id_dosis), "AÑADIDO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_dosis) + " .");
-
-					});
 				} else {
 					resultadoJson.put("error", "ERROR AL AÑADIR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_dosis) + " ."+ String.valueOf(res.cause()));
 				}
@@ -335,11 +325,9 @@ public class BDDosis {
 				JsonObject resultadoJson = new JsonObject();
 
 				if (res.succeeded()) {
-					res.result().forEach(v -> {
+					
 						
 						resultadoJson.put(String.valueOf(id_registro_dosis), "BORRADO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_registro_dosis) + " .");
-
-					});
 				} else {
 					resultadoJson.put("error", "ERROR AL BORRAR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_registro_dosis) + " ."+ String.valueOf(res.cause()));
 				}
@@ -376,11 +364,7 @@ public class BDDosis {
 			query.execute(res -> {
 				JsonObject resultadoJson = new JsonObject();
 				if (res.succeeded()) {
-					res.result().forEach(v -> {
-						
 						resultadoJson.put(String.valueOf(id_registro_dosis), "EDITADO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_registro_dosis) + " .");
-
-					});
 				} else {
 					resultadoJson.put("error", "ERROR AL EDITAR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_registro_dosis) + " ."+ String.valueOf(res.cause()));
 				}
