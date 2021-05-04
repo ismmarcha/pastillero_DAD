@@ -107,12 +107,11 @@ public class HttpUsuario {
 	}
 
 	public void editUsuario(RoutingContext routingContext) {	
-		String nif = routingContext.getBodyAsString();
 		// Creamos un objeto JSON de los datos a modificar del usuario
 		JsonObject json = routingContext.getBodyAsJson();
 		// Añadimos a dicho JSON el userid para poder saber que usuario queremos
 		// modificar.
-		json.put("nif", nif);
+		json.put("nif", json.getValue("nif"));
 		vertx.eventBus().request("editUsuario", json.toString(), reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());

@@ -34,6 +34,9 @@ if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE())
 TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), 
 TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()));
 
-
 insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) 
 values ("1234528E","192R5T","Manuel","Tejano","Tejanito22","admin@admin.es","enfermo","12344");
+
+UPDATE Usuario SET firstname = "helado" WHERE nif = "12345678U";
+
+if((select count(*) from Usuario WHERE nif = '12345678U') > 0, SELECT "hola", SELECT "adios");

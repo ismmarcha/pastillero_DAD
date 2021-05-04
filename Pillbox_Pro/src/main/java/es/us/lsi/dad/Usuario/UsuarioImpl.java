@@ -1,7 +1,5 @@
 package es.us.lsi.dad.Usuario;
 
-import java.util.Date;
-
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
 
