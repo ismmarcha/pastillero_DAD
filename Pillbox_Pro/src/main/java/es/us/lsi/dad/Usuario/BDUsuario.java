@@ -175,12 +175,10 @@ public class BDUsuario {
 			String nif = jsonUsuario.getString("nif");
 			Query<RowSet<Row>> query1 = mySqlClient
 					.query("SELECT COUNT(*) as nUsuarios FROM Usuario WHERE nif = '" + nif + "';");
-			System.out.println("SELECT COUNT(*) as nUsuarios FROM Usuario WHERE nif = '" + nif + "';");
 			query1.execute(res -> {
 				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
 					Row row = (Row) res.result().iterator().next();
-					System.out.println(row.getInteger("nUsuarios"));
 					if (row.getInteger("nUsuarios") <= 0) {
 						json.put("error", "Usuario no encontrado");
 						message.reply(json);
@@ -201,8 +199,6 @@ public class BDUsuario {
 							}
 						}
 						stringQuery += "WHERE nif = '" + nif + "';";
-
-						System.out.println(stringQuery);
 						Query<RowSet<Row>> query2 = mySqlClient.query(stringQuery);
 						query2.execute(res2 -> {
 							JsonObject json2 = new JsonObject();

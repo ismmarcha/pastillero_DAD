@@ -184,16 +184,38 @@ public class BDDosis {
 			String nif = jsonDosis.getString("nif");
 			String hora_inicio = jsonDosis.getString("hora_inicio");
 			String dia_semana = jsonDosis.getString("dia_semana");
-			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Dosis WHERE nif = '" + nif
-					+ "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
-			query.execute(res -> {
-				JsonObject resultadoJson = new JsonObject();
-				if (res.succeeded()) {
-						resultadoJson.put(nif, "BORRADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+dia_semana );
-				} else {
-					resultadoJson.put("error", "ERROR AL BORRAR LA DOSIS CON NIF: "+ nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+dia_semana+ " ."+ String.valueOf(res.cause()));
+			
+			Query<RowSet<Row>> query1 = mySqlClient
+					.query("SELECT COUNT(*) as nDosis FROM pastillero_dad.Dosis WHERE NIF = '" + nif + "' AND HORA_INICIO = '"+hora_inicio+ "' AND DIA_SEMANA = '" + dia_semana + "';");
+			query1.execute(res -> {
+				JsonObject json = new JsonObject();
+				if ( res.succeeded()) {
+					Row row = res.result().iterator().next();
+					if (row.getInteger("nDosis") <= 0) {
+						json.put("error", "DOSIS NO ENCONTRADA");
+						message.reply(json);					
+				}else {
+					Query<RowSet<Row>> query2 = mySqlClient.query("DELETE FROM pastillero_dad.Dosis WHERE nif = '" + nif
+							+ "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
+					
+					query2.execute(res2 -> {
+						JsonObject resultadoJson = new JsonObject();
+						if (res2.succeeded()) {
+								resultadoJson.put(nif, "BORRADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+dia_semana );
+						} else {
+							resultadoJson.put("error", "ERROR AL BORRAR LA DOSIS CON NIF: "+ nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+dia_semana+ " ."+ String.valueOf(res2.cause()));
+						}
+						message.reply(resultadoJson);
+					});
 				}
-				message.reply(resultadoJson);
+				}else {
+					json.put("error", "USUARIO CON ID: " + nif + " NO ENCONTRADO;");
+					message.reply(json);
+				}
+			
+			
+			
+			
 			});
 		});
 	}
@@ -231,33 +253,50 @@ public class BDDosis {
 			jsonDosis.remove("nif");
 			jsonDosis.remove("hora_inicio");
 			jsonDosis.remove("dia_semana");
-			String stringQuery = "UPDATE pastillero_dad.Dosis SET ";
-			Iterator<Entry<String, Object>> iteratorJsonDosis = jsonDosis.iterator();
-			while (iteratorJsonDosis.hasNext()) {
-				Entry<String, Object> elemento = iteratorJsonDosis.next();
-				stringQuery += elemento.getKey() + " = ";
-				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
-					stringQuery += elemento.getValue();
-				} else {
-					stringQuery += "'" + elemento.getValue() + "'";
+			Query<RowSet<Row>> query1 = mySqlClient
+					.query("SELECT COUNT(*) as nDosis FROM pastillero_dad.Dosis WHERE NIF = '" + nif + "' AND HORA_INICIO = '"+hora_inicio+ "' AND DIA_SEMANA = '" + dia_semana + "';");
+			query1.execute(res -> {
+				JsonObject json = new JsonObject();
+				if(res.succeeded()) {
+					Row row = (Row) res.result().iterator().next();
+					if (row.getInteger("nDosis") <= 0) {
+						json.put("error", "Dosis no encontrada");
+						message.reply(json);
+					}else {
+						String stringQuery = "UPDATE pastillero_dad.Dosis SET ";
+						Iterator<Entry<String, Object>> iteratorJsonDosis = jsonDosis.iterator();
+						while (iteratorJsonDosis.hasNext()) {
+							Entry<String, Object> elemento = iteratorJsonDosis.next();
+							stringQuery += elemento.getKey() + " = ";
+							if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
+								stringQuery += elemento.getValue();
+							} else {
+								stringQuery += "'" + elemento.getValue() + "'";
+							}
+							if (iteratorJsonDosis.hasNext()) {
+								stringQuery += ", ";
+							}
+						}
+						stringQuery += "WHERE nif = '" + nif + "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '"
+								+ dia_semana + "';";
+						Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
+						query.execute(res2 -> {
+							JsonObject resultadoJson = new JsonObject();
+							if (res2.succeeded()) {
+								
+									resultadoJson.put(nif, "EDITADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " +  hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana );
+							} else {
+								resultadoJson.put("error", "ERROR AL EDITAR LA DOSIS CON NIF: "+ nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana+ " . "+ String.valueOf(res2.cause()));
+							}
+							message.reply(resultadoJson);
+						});
+					}
+				}else {
+					json.put("error",
+							"ERROR AL EDITAR EL LA DOSIS DEL USUARIO CON NIF: " + nif + " ." + String.valueOf(res.cause()));
+					message.reply(json);
 				}
-				if (iteratorJsonDosis.hasNext()) {
-					stringQuery += ", ";
-				}
-			}
-			stringQuery += "WHERE nif = '" + nif + "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '"
-					+ dia_semana + "';";
-			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
-			query.execute(res -> {
-				JsonObject resultadoJson = new JsonObject();
-				if (res.succeeded()) {
-					
-						resultadoJson.put(nif, "EDITADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: " +  hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana );
-				} else {
-					resultadoJson.put("error", "ERROR AL EDITAR LA DOSIS CON NIF: "+ nif + " HORA DE INICIO: " + hora_inicio + " Y DIA DE LA SEMANA:  "+ dia_semana+ " ."+ String.valueOf(res.cause()));
-				}
-				message.reply(resultadoJson);
-			});
+			});	
 		});
 	}
 	
@@ -319,19 +358,34 @@ public class BDDosis {
 			String datosRegistroDosis = message.body();
 			JsonObject jsonDosis = new JsonObject(datosRegistroDosis);
 			int id_registro_dosis= jsonDosis.getInteger("id_registro_dosis");
-			
-			Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Registro_Dosis WHERE id_registro_dosis = " + id_registro_dosis + ";");
-			query.execute(res -> {
-				JsonObject resultadoJson = new JsonObject();
+			Query<RowSet<Row>> query1 = mySqlClient
+					.query("SELECT COUNT(*) as nRegistro FROM pastillero_dad.Registro_Dosis WHERE ID_REGISTRO_DOSIS = " + id_registro_dosis + ";");
+			query1.execute(res -> {
+				JsonObject json = new JsonObject();
+				if (res.succeeded()){
+					Row row = res.result().iterator().next();
+					if (row.getInteger("nRegistro") <= 0) {
+						json.put("error", "Registro no encontrado");
+						message.reply(json);
+					} else {
+						Query<RowSet<Row>> query = mySqlClient.query("DELETE FROM pastillero_dad.Registro_Dosis WHERE id_registro_dosis = " + id_registro_dosis + ";");
+						query.execute(res2 -> {
+							JsonObject resultadoJson = new JsonObject();
 
-				if (res.succeeded()) {
-					
-						
-						resultadoJson.put(String.valueOf(id_registro_dosis), "BORRADO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_registro_dosis) + " .");
-				} else {
-					resultadoJson.put("error", "ERROR AL BORRAR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_registro_dosis) + " ."+ String.valueOf(res.cause()));
+							if (res2.succeeded()) {
+								
+									
+									resultadoJson.put(String.valueOf(id_registro_dosis), "BORRADO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_registro_dosis) + " .");
+							} else {
+								resultadoJson.put("error", "ERROR AL BORRAR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_registro_dosis) + " ."+ String.valueOf(res2.cause()));
+							}
+							message.reply(resultadoJson);
+						});
+					}
+				}else {
+					json.put("error", "REGISTRO CON ID: " +id_registro_dosis+ " DE LA DOSIS NO ENCONTRADO");
+					message.reply(json);
 				}
-				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -343,33 +397,50 @@ public class BDDosis {
 			JsonObject jsonDosis = new JsonObject(datosRegistroDosis);
 			int id_registro_dosis = jsonDosis.getInteger("id_registro_dosis");
 			jsonDosis.remove("id_registro_dosis");
-
-			String stringQuery = "UPDATE pastillero_dad.Registro_Dosis SET ";
-			Iterator<Entry<String, Object>> iteratorJsonDosis = jsonDosis.iterator();
-			while (iteratorJsonDosis.hasNext()) {
-				Entry<String, Object> elemento = iteratorJsonDosis.next();
-				stringQuery += elemento.getKey() + " = ";
-				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
-					stringQuery += elemento.getValue();
-				} else {
-					stringQuery += "'" + elemento.getValue() + "'";
-				}
-				if (iteratorJsonDosis.hasNext()) {
-					stringQuery += ", ";
-				}
-			}
-			stringQuery += " WHERE id_registro_dosis = " + id_registro_dosis  + ";";
-			System.out.println(stringQuery);
-			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
-			query.execute(res -> {
-				JsonObject resultadoJson = new JsonObject();
+			Query<RowSet<Row>> query1 = mySqlClient
+					.query("SELECT COUNT(*) as nRegistro FROM Registro_Dosis WHERE id_registro_dosis = " + id_registro_dosis + ";");
+			query1.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-						resultadoJson.put(String.valueOf(id_registro_dosis), "EDITADO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_registro_dosis) + " .");
-				} else {
-					resultadoJson.put("error", "ERROR AL EDITAR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_registro_dosis) + " ."+ String.valueOf(res.cause()));
+					Row row = (Row) res.result().iterator().next();
+					if (row.getInteger("nRegistro") <= 0) {
+						json.put("error", "Registro no encontrado");
+						message.reply(json);
+					} else {
+						String stringQuery = "UPDATE pastillero_dad.Registro_Dosis SET ";
+						Iterator<Entry<String, Object>> iteratorJsonDosis = jsonDosis.iterator();
+						while (iteratorJsonDosis.hasNext()) {
+							Entry<String, Object> elemento = iteratorJsonDosis.next();
+							stringQuery += elemento.getKey() + " = ";
+							if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
+								stringQuery += elemento.getValue();
+							} else {
+								stringQuery += "'" + elemento.getValue() + "'";
+							}
+							if (iteratorJsonDosis.hasNext()) {
+								stringQuery += ", ";
+							}
+						}
+						stringQuery += " WHERE id_registro_dosis = " + id_registro_dosis  + ";";
+						System.out.println(stringQuery);
+						Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
+						query.execute(res2 -> {
+							JsonObject resultadoJson = new JsonObject();
+							if (res.succeeded()) {
+									resultadoJson.put(String.valueOf(id_registro_dosis), "EDITADO EL REGISTRO DE LA DOSIS CON ID:  " + String.valueOf(id_registro_dosis) + " .");
+							} else {
+								resultadoJson.put("error", "ERROR AL EDITAR EL REGISTRO DE LA DOSIS CON ID: "+ String.valueOf(id_registro_dosis) + " ."+ String.valueOf(res2.cause()));
+							}
+							message.reply(resultadoJson);
+						});
+					}	
+				}else{
+					json.put("error",
+							"ERROR AL EDITAR EL REGISTRO CON ID: " + id_registro_dosis + " . " + String.valueOf(res.cause()));
+					message.reply(json);
 				}
-				message.reply(resultadoJson);
 			});
+			
 		});
 	}
 

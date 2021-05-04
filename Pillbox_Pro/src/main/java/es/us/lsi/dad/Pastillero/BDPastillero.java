@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Pastillero;
 
-import java.util.Iterator; 
+import java.util.Iterator;  
 import java.util.Map.Entry;
 
 import es.us.lsi.dad.Usuario.UsuarioImpl;

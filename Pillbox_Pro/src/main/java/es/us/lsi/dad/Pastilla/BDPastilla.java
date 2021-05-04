@@ -85,17 +85,34 @@ public class BDPastilla {
 			String datosPastilla = message.body();
 			JsonObject jsonPastilla = new JsonObject(datosPastilla);
 			int Id_pastilla = jsonPastilla.getInteger("id_pastilla");
-			Query<RowSet<Row>> query = mySqlClient
-					.query("DELETE FROM pastillero_dad.Pastilla WHERE id_pastilla = " + Id_pastilla + ";");
-			query.execute(res -> {
-				JsonObject resultadoJson = new JsonObject();
+			
+			Query<RowSet<Row>> query1 = mySqlClient
+					.query("SELECT COUNT(*) as nPastilla FROM pastillero_dad.Pastilla WHERE Id_pastilla = " + Id_pastilla + ";");
+			query1.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-						resultadoJson.put(String.valueOf(Id_pastilla), "BORRADA LA PASTILLA CON ID: " + String.valueOf(Id_pastilla) );
-				} else {
-					resultadoJson.put("error", "ERROR AL BORRAR LA PASTILLA CON ID: "+ String.valueOf(Id_pastilla) + " ."+ String.valueOf(res.cause()));
+					Row row = res.result().iterator().next();
+					if (row.getInteger("nPastilla") <= 0) {
+						json.put("error", "Pastilla no encontrada");
+						message.reply(json);
+					} else {
+						Query<RowSet<Row>> query2 = mySqlClient
+								.query("DELETE FROM pastillero_dad.Pastilla WHERE id_pastilla = " + Id_pastilla + ";");
+						query2.execute(res2 -> {
+							JsonObject resultadoJson = new JsonObject();
+							if (res2.succeeded()) {
+									resultadoJson.put(String.valueOf(Id_pastilla), "BORRADA LA PASTILLA CON ID: " + String.valueOf(Id_pastilla) );
+							} else {
+								resultadoJson.put("error", "ERROR AL BORRAR LA PASTILLA CON ID: "+ String.valueOf(Id_pastilla) + " . "+ String.valueOf(res2.cause()));
 
+							}
+							message.reply(resultadoJson);
+						});
+					}
+				}else {
+					json.put("error", "PASTILLA A ELIMINAR NO ENCONTRADO CON ID: " + String.valueOf(Id_pastilla) );
+					message.reply(json);
 				}
-				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -126,33 +143,51 @@ public class BDPastilla {
 			JsonObject jsonPastilla = new JsonObject(datosPastilla);
 
 			String id_pastilla = jsonPastilla.getString("id_pastilla");
-			jsonPastilla.remove(id_pastilla);
-			String stringQuery = "UPDATE pastillero_dad.Pastilla SET ";
-
-			Iterator<Entry<String, Object>> iteratorJsonPastilla = jsonPastilla.iterator();
-			while (iteratorJsonPastilla.hasNext()) {
-				Entry<String, Object> elemento = iteratorJsonPastilla.next();
-				stringQuery += elemento.getKey() + " = ";
-				if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
-					stringQuery += elemento.getValue();
-				} else {
-					stringQuery += "'" + elemento.getValue() + "'";
-				}
-				if (iteratorJsonPastilla.hasNext()) {
-					stringQuery += ", ";
-				}
-			}
-			stringQuery += " WHERE id_pastilla = '" + id_pastilla + "';";
-
-			Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
-			query.execute(res -> {
-				JsonObject resultadoJson = new JsonObject();
+			Query<RowSet<Row>> query1 = mySqlClient
+					.query("SELECT COUNT(*) as nPastilla FROM Pastilla WHERE id_pastilla = " + id_pastilla + ";");
+			
+			query1.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-						resultadoJson.put(id_pastilla, "EDITADA LA PASTILLA:   " + jsonPastilla.getString("nombre")   + " ." );
-				} else {
-					resultadoJson.put("error", "ERROR AL EDITAR LA PASTILLA CON ID: "+ id_pastilla + " ."+ String.valueOf(res.cause()));
+					Row row = (Row) res.result().iterator().next();
+					if (row.getInteger("nPastilla") <= 0) {
+						json.put("error", "Pastilla no encontrada");
+						message.reply(json);
+					} else {
+						String stringQuery = "UPDATE pastillero_dad.Pastilla SET ";
+						jsonPastilla.remove("id_pastilla");
+						Iterator<Entry<String, Object>> iteratorJsonPastilla = jsonPastilla.iterator();
+						while (iteratorJsonPastilla.hasNext()) {
+							Entry<String, Object> elemento = iteratorJsonPastilla.next();
+							stringQuery += elemento.getKey() + " = ";
+							if (elemento.getValue() == null || elemento.getValue() instanceof Number) {
+								stringQuery += elemento.getValue();
+							} else {
+								stringQuery += "'" + elemento.getValue() + "'";
+							}
+							if (iteratorJsonPastilla.hasNext()) {
+								stringQuery += ", ";
+							}
+						}
+						stringQuery += " WHERE id_pastilla = " + id_pastilla + ";";
+
+						Query<RowSet<Row>> query = mySqlClient.query(stringQuery);
+						System.out.println(stringQuery);
+						query.execute(res2 -> {
+							JsonObject resultadoJson = new JsonObject();
+							if (res2.succeeded()) {
+									resultadoJson.put(id_pastilla, "EDITADA LA PASTILLA:   " + jsonPastilla.getString("nombre")   + " ." );
+							} else {
+								resultadoJson.put("error", "ERROR AL EDITAR LA PASTILLA CON ID: "+ id_pastilla + " ."+ String.valueOf(res2.cause()));
+							}
+							message.reply(resultadoJson);
+						});
+					}
+				}else {
+					json.put("error",
+							"ERROR AL EDITAR LA PASTILLA CON ID: " + id_pastilla + " ." + String.valueOf(res.cause()));
+					message.reply(json);
 				}
-				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -214,16 +249,29 @@ public class BDPastilla {
 			int Id_pastilla = jsonPastillaPorDosis.getInteger("id_pastilla");
 			int Id_dosis = jsonPastillaPorDosis.getInteger("id_dosis");
 			
-			Query<RowSet<Row>> query = mySqlClient
-					.query("DELETE FROM pastillero_dad.Pastilla_Dosis WHERE Id_pastilla = " + Id_pastilla + " AND Id_Dosis =" + Id_dosis + " ;");
-			query.execute(res -> {
-				JsonObject resultadoJson = new JsonObject();
+			Query<RowSet<Row>> query1 = mySqlClient
+					.query("SELECT COUNT(*) as nPastillaDosis FROM pastillero_dad.Pastilla_Dosis WHERE id_pastilla = " + Id_pastilla + " AND Id_Dosis = " + Id_dosis + " ;");
+			query1.execute(res -> {
+				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
-						resultadoJson.put(String.valueOf(Id_pastilla), "BORRADA LA PASTILLA CON ID: " + String.valueOf(Id_pastilla)+ " A LA DOSIS CON ID: "+  String.valueOf(Id_dosis)  + " ." );
-				} else {
-					resultadoJson.put("error", "ERROR AL BORRAR LA PASTILLA CON ID: "+ String.valueOf(Id_pastilla)+ "A LA DOSIS CON ID: "+ String.valueOf(Id_dosis) + " ."+ String.valueOf(res.cause()));
+					Row row = res.result().iterator().next();
+					if (row.getInteger("nPastillaDosis") <= 0) {
+						json.put("error", "Pastilla no encontrada");
+						message.reply(json);
+					} else {
+						Query<RowSet<Row>> query = mySqlClient
+								.query("DELETE FROM pastillero_dad.Pastilla_Dosis WHERE Id_pastilla = " + Id_pastilla + " AND Id_Dosis =" + Id_dosis + " ;");
+						query.execute(res2 -> {
+							JsonObject resultadoJson = new JsonObject();
+							if (res2.succeeded()) {
+									resultadoJson.put(String.valueOf(Id_pastilla), "BORRADA LA PASTILLA CON ID: " + String.valueOf(Id_pastilla)+ " A LA DOSIS CON ID: "+  String.valueOf(Id_dosis)  + " ." );
+							} else {
+								resultadoJson.put("error", "ERROR AL BORRAR LA PASTILLA CON ID: "+ String.valueOf(Id_pastilla)+ "A LA DOSIS CON ID: "+ String.valueOf(Id_dosis) + " ."+ String.valueOf(res2.cause()));
+							}
+							message.reply(resultadoJson);
+						});
+					}
 				}
-				message.reply(resultadoJson);
 			});
 		});
 	}
