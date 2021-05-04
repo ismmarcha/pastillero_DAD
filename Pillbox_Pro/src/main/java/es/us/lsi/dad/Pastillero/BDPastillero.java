@@ -108,9 +108,31 @@ public class BDPastillero {
 			query.execute(res -> {
 				JsonObject json = new JsonObject();
 				if (res.succeeded()) {
+<<<<<<< Updated upstream
 					res.result().forEach(v -> {
 						json.put(Id_pastillero, "BORRADO EL PASTILLERO CON ID:  " + Id_pastillero);
 					});
+=======
+					Row row = res.result().iterator().next();
+					if (row.getInteger("nPastilleros") <= 0) {
+						json.put("error", "ERROR AL ELIMINAR EL PASTILLERO CON ID: " + id_pastillero
+								+ " ERROR: PASTILLERO NO ENCONTRADO");
+						message.reply(json);
+					} else {
+						Query<RowSet<Row>> query2 = mySqlClient
+								.query("DELETE FROM pastillero_dad.Pastillero WHERE id_pastillero = '" + id_pastillero + "';");
+						query2.execute(res2 -> {
+							JsonObject json2 = new JsonObject();
+							if (res2.succeeded()) {
+								json2.put(id_pastillero, "PASTILLERO BORRADO CON EL ID " + id_pastillero);
+							} else {
+								json2.put("error", "ERROR AL BORRAR EL USUARIO CON NIF: " + id_pastillero + " ."
+										+ String.valueOf(res2.cause()));
+							}
+							message.reply(json2);
+						});
+					}
+>>>>>>> Stashed changes
 				} else {
 					json.put("error", "ERROR AL BORRAR EL PASTILLERO CON ID: "+ Id_pastillero+" ."+ String.valueOf(res.cause()) );
 				}
