@@ -48,10 +48,6 @@
 			<artifactId>vertx-mqtt</artifactId>
 			<version>4.0.3</version>
 		</dependency>
-<<<<<<< Updated upstream:Pillbox_Pro/pom.xml
 
-=======
-		
->>>>>>> Stashed changes:Usuario/pom.xml
 	</dependencies>
 </project>
