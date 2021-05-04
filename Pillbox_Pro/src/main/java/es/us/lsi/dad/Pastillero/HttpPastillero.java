@@ -15,13 +15,13 @@ public class HttpPastillero {
 	}
 	
 	public void iniciarRouterPastillero(Router router) {
-		router.route("/api/pastillero/*").handler(BodyHandler.create());
-		router.get("/api/pastillero").handler(this::getAllPastillero);
-		router.get("/api/pastillero/getPastilleroId").handler(this::getPastillero);
-		router.get("/api/pastillero/getUsuariosPorPastillero").handler(this::getUsuariosPorPastillero);
-		router.post("/api/pastillero/addPastillero").handler(this::addPastillero);
-		router.put("/api/pastillero/editPastillero").handler(this::editPastillero);
-		router.delete("/api/pastillero").handler(this::deletePastillero);
+		router.route("/api/pastilleros/*").handler(BodyHandler.create());
+		router.get("/api/pastilleros").handler(this::getAllPastillero);
+		router.get("/api/pastilleros/getPastilleroId").handler(this::getPastillero);
+		router.get("/api/pastilleros/getUsuariosPorPastillero").handler(this::getUsuariosPorPastillero);
+		router.post("/api/pastilleros/addPastillero").handler(this::addPastillero);
+		router.put("/api/pastilleros/editPastillero").handler(this::editPastillero);
+		router.delete("/api/pastilleros").handler(this::deletePastillero);
 		
 	}
 	
