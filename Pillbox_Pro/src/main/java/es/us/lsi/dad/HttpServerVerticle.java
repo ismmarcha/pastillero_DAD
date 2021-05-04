@@ -1,7 +1,5 @@
 package es.us.lsi.dad;
 
-import com.google.gson.Gson; 
-
 import es.us.lsi.dad.Pastilla.HttpPastilla;
 import es.us.lsi.dad.Dosis.HttpDosis;
 import es.us.lsi.dad.Pastillero.HttpPastillero;
@@ -9,19 +7,15 @@ import es.us.lsi.dad.Usuario.HttpUsuario;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BodyHandler;
+
 
 public class HttpServerVerticle extends AbstractVerticle {
 
 	private HttpServer httpServer = null;
-	private Gson gson;
 	private Router router;
 	@Override
 	public void start(Promise<Void> startFuture) { 
-		gson = new Gson();
 		// Iniciamos el verticle encargado de la base de datos
 		vertx.deployVerticle(new BDVerticle());
 		System.out.println("hola");

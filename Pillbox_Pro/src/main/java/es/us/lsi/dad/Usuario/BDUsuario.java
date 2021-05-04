@@ -1,9 +1,8 @@
 package es.us.lsi.dad.Usuario;
 
-import java.util.Iterator;
+import java.util.Iterator; 
 import java.util.Map.Entry;
 
-import es.us.lsi.dad.Pastilla.PastillaImpl;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;

@@ -1,22 +1,16 @@
 package es.us.lsi.dad;
 
-import com.google.gson.Gson; 
+import com.google.gson.Gson;  
 
 import es.us.lsi.dad.Pastilla.BDPastilla;
 import es.us.lsi.dad.Dosis.BDDosis;
 import es.us.lsi.dad.Pastillero.BDPastillero;
 import es.us.lsi.dad.Usuario.BDUsuario;
-import es.us.lsi.dad.Usuario.UsuarioImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import io.vertx.core.eventbus.MessageConsumer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.mysqlclient.MySQLConnectOptions;
 import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.sqlclient.PoolOptions;
-import io.vertx.sqlclient.Query;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowSet;
 
 public class BDVerticle extends AbstractVerticle {
 

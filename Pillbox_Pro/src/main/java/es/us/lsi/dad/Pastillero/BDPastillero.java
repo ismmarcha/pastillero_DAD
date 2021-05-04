@@ -1,9 +1,8 @@
 package es.us.lsi.dad.Pastillero;
 
-import java.util.Iterator;
+import java.util.Iterator; 
 import java.util.Map.Entry;
 
-import es.us.lsi.dad.Pastilla.PastillaImpl;
 import es.us.lsi.dad.Usuario.UsuarioImpl;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
