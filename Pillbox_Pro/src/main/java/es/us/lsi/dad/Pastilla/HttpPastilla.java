@@ -1,7 +1,6 @@
 package es.us.lsi.dad.Pastilla;
 
-import io.vertx.core.Vertx;  
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.Vertx;   
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;

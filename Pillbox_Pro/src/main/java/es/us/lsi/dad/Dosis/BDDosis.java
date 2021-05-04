@@ -1,13 +1,9 @@
 package es.us.lsi.dad.Dosis;
 
-import java.time.LocalDateTime; 
-import java.time.LocalTime;
-import java.time.format.TextStyle;
+
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map.Entry;
 
-import es.us.lsi.dad.Pastilla.PastillaImpl;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
