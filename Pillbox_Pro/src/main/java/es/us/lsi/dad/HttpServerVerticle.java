@@ -18,7 +18,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 	public void start(Promise<Void> startFuture) {
 		// Iniciamos el verticle encargado de la base de datos
 		vertx.deployVerticle(new BDVerticle());
-		System.out.println("hola");
+		System.out.println("Inicio de Vert.x");
 		// Creamos el objeto Router que nos permite enlazar peticiones REST a funciones
 		// de nuestro servidor
 		router = Router.router(vertx);
