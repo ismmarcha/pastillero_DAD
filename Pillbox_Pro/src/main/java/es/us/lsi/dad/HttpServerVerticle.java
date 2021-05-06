@@ -7,15 +7,15 @@ import es.us.lsi.dad.Usuario.HttpUsuario;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
-import io.vertx.ext.web.Router; 
-
+import io.vertx.ext.web.Router;
 
 public class HttpServerVerticle extends AbstractVerticle {
 
 	private HttpServer httpServer = null;
 	private Router router;
+
 	@Override
-	public void start(Promise<Void> startFuture) { 
+	public void start(Promise<Void> startFuture) {
 		// Iniciamos el verticle encargado de la base de datos
 		vertx.deployVerticle(new BDVerticle());
 		System.out.println("hola");
@@ -31,20 +31,21 @@ public class HttpServerVerticle extends AbstractVerticle {
 		httpUsuario.iniciarRouterUsuario(router);
 		httpPastillero.iniciarRouterPastillero(router);
 		httpPastilla.iniciarRouterPastilla(router);
-		
+
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
 
-		httpServer.requestHandler(router::handle).listen(8093, res -> {
+		httpServer.requestHandler(router::handle).listen(8095, res -> {
 
 			if (res.succeeded()) {
+				System.out.println("Servidor HTTP iniciado en el puerto " + res.result().actualPort());
 				startFuture.complete();
 			} else {
 				startFuture.fail(res.cause());
 			}
 		});
 	}
-	
+
 	@Override
 	public void stop(Promise<Void> startFuture) {
 		httpServer.close();

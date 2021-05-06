@@ -18,19 +18,19 @@ public class HttpPastilla {
 	}
 	
 	public void iniciarRouterPastilla(Router router) {
-		router.route("/api/pastilla/*").handler(BodyHandler.create());
-		router.get("/api/pastilla").handler(this::getAllPastilla);
-		router.get("/api/pastilla/getPastilla").handler(this::getPastilla);
-		router.post("/api/pastilla/addPastilla").handler(this::addPastilla);
-		router.put("/api/pastilla/editPastilla").handler(this::editPastilla);
-		router.delete("/api/pastilla").handler(this::deletePastilla);
+		router.route("/api/pastillas/*").handler(BodyHandler.create());
+		router.get("/api/pastillas").handler(this::getAllPastilla);
+		router.get("/api/pastillas/getPastilla").handler(this::getPastilla);
+		router.post("/api/pastillas/addPastilla").handler(this::addPastilla);
+		router.put("/api/pastillas/editPastilla").handler(this::editPastilla);
+		router.delete("/api/pastillas").handler(this::deletePastilla);
 		
-		router.get("/api/pastilla/getPastillaPorDosis").handler(this::getPastillaPorDosis);
-		router.post("/api/pastilla/addPastillaPorDosis").handler(this::addPastillaPorDosis);
-		router.put("/api/pastilla/editPastillaPorDosis").handler(this::editPastillaPorDosis);
-		router.delete("/api/pastilla/deletePastillaPorDosis").handler(this::deletePastillaPorDosis);
+		router.get("/api/pastillas/getPastillaPorDosis").handler(this::getPastillaPorDosis);
+		router.post("/api/pastillas/addPastillaPorDosis").handler(this::addPastillaPorDosis);
+		router.put("/api/pastillas/editPastillaPorDosis").handler(this::editPastillaPorDosis);
+		router.delete("/api/pastillas/deletePastillaPorDosis").handler(this::deletePastillaPorDosis);
 		
-		router.get("/api/pastilla/getPastillasPorUsuario").handler(this::getPastillasPorUsuario);
+		router.get("/api/pastillas/getPastillasPorUsuario").handler(this::getPastillasPorUsuario);
 	}
 
 	public void getAllPastilla(RoutingContext routingContext) {
