@@ -44,6 +44,7 @@ public class HttpPastillero {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
 		String datosPastillero = routingContext.getBodyAsString();
+		System.out.println("Datos Pastillero: "+datosPastillero);
 		vertx.eventBus().request("getPastillero", datosPastillero, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());

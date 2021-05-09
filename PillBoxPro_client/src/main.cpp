@@ -2,13 +2,31 @@
 #include <PubSubClient.h>
 #include <Ethernet.h>
 #include <ESP8266WiFi.h>
+#include <ArduinoHttpClient.h>
+#include <ArduinoJson.h>
 
-WiFiClient espClient;
-PubSubClient client(espClient);
-IPAddress server(192, 168, 1, 10);
 
 const char* ssid = "MOVISTAR_072E";
 const char* password = "X8Z3J2Jptc6vAkZYRsan";
+const int portHttp = 8080;
+const int portMqtt = 1883;
+String placaId = "";
+
+WiFiClient espWifiClient;
+IPAddress server(192, 168, 1, 10);
+PubSubClient mqttClient(espWifiClient);
+HttpClient httpClient = HttpClient(espWifiClient, server, portHttp);
+
+String macToStr(const uint8_t* mac)
+{
+  String result;
+  for (int i = 0; i < 6; ++i) {
+    result += String(mac[i], 16);
+    if (i < 5)
+      result += ':';
+  }
+  return result;
+}
 
 void setup_wifi(){
   delay(10);
@@ -16,6 +34,9 @@ void setup_wifi(){
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
+  uint8_t mac[6];
+  WiFi.macAddress(mac);
+  placaId += macToStr(mac);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -26,6 +47,67 @@ void setup_wifi(){
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+}
+
+void getTest(){
+  DynamicJsonDocument doc(1024);
+  //String bodyData = "{"+'"'+"id_pastillero"+'"'+":"+'"'+"192R5T"+'"'+"}";
+  doc[String("id_pastillero")] = "192R5T";
+  //JsonObject bodyGet = doc.as<JsonObject>();
+  String bodyData = "";
+  serializeJson(doc, bodyData);
+  Serial.println(bodyData);
+  Serial.println("making GET request");
+  httpClient.beginRequest();
+  httpClient.get("/api/pastilleros/getPastilleroId");
+  httpClient.sendHeader("Content-Type", "application/json");
+  httpClient.sendHeader("Content-Length", bodyData.length());
+  httpClient.sendHeader("X-Custom-Header", "custom-header-value");
+  httpClient.beginBody();
+  httpClient.print(bodyData);
+  httpClient.endRequest();
+
+  // read the status code and body of the response
+  int statusCode = httpClient.responseStatusCode();
+  String response = httpClient.responseBody();
+
+  Serial.print("GET Status code: ");
+  Serial.println(statusCode);
+  Serial.print("GET Response: ");
+  Serial.println(response);
+
+  Serial.println("Wait five seconds");
+  delay(5000);
+}
+
+void postTest(){
+  DynamicJsonDocument doc(1024);
+  doc[String("id_pastillero")] = "193R5T";
+  doc[String("alias")] = "papá";
+  String bodyData = "";
+  serializeJson(doc, bodyData);
+  Serial.println(bodyData);
+  Serial.println("making POST request ADD PASTILLERO");
+  httpClient.beginRequest();
+  httpClient.post("/api/pastilleros/addPastillero");
+  httpClient.sendHeader("Content-Type", "application/json");
+  httpClient.sendHeader("Content-Length", bodyData.length());
+  httpClient.sendHeader("X-Custom-Header", "custom-header-value");
+  httpClient.beginBody();
+  httpClient.print(bodyData);
+  httpClient.endRequest();
+
+  // read the status code and body of the response
+  int statusCode = httpClient.responseStatusCode();
+  String response = httpClient.responseBody();
+
+  Serial.print("POST Status code: ");
+  Serial.println(statusCode);
+  Serial.print("POST Response: ");
+  Serial.println(response);
+
+  Serial.println("Wait five seconds");
+  delay(5000);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -40,18 +122,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 void reconnect() {
   // Loop until we're reconnected
-  while (!client.connected()) {
+  while (!mqttClient.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("arduinoClient")) {
+    if (mqttClient.connect("arduinoClient", "admin1", "123456")) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      client.publish("outTopic","hello world");
+      mqttClient.publish("outTopic","hello world");
       // ... and resubscribe
-      client.subscribe("inTopic");
+      mqttClient.subscribe("inTopic");
     } else {
       Serial.print("failed, rc=");
-      Serial.print(client.state());
+      Serial.print(mqttClient.state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
@@ -62,16 +144,18 @@ void reconnect() {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  client.setServer(server, 1883);
-  client.setCallback(callback);
+  mqttClient.setServer(server, portMqtt);
+  mqttClient.setCallback(callback);
   setup_wifi();
   delay(1500);
+  getTest();
+  postTest();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if (!client.connected()) {
+  if (!mqttClient.connected()) {
     reconnect();
   }
-  client.loop();
+  mqttClient.loop();
 }
