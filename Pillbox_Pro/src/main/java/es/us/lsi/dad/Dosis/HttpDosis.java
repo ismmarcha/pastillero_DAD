@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Dosis;
 
-import io.vertx.core.Vertx;
+import io.vertx.core.Vertx; 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -56,17 +56,21 @@ public class HttpDosis {
 	public void getDosis(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
+		
 		String datosDosis = routingContext.getBodyAsString();
+		if(datosDosis == null) {
+			datosDosis = "{}";	}
+		
 		vertx.eventBus().request("getDosis", datosDosis, reply -> {
 			if (reply.succeeded()) {
-				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
+		
 	}
 
 	public void getDosisPorUsuario(RoutingContext routingContext) {

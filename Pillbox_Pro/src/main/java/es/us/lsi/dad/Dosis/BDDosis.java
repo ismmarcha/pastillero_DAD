@@ -1,9 +1,10 @@
 package es.us.lsi.dad.Dosis;
 
 
-import java.util.Iterator;
+import java.util.Iterator; 
 import java.util.Map.Entry;
 
+import es.us.lsi.dad.Utils.Utils;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -12,10 +13,13 @@ import io.vertx.sqlclient.Query;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
+
 public class BDDosis {
 	Vertx vertx;
 	MySQLPool mySqlClient;
-
+	
+	Utils utils = new Utils();
+	
 	public BDDosis(Vertx vertx, MySQLPool mySqlClient) {
 		this.vertx = vertx;
 		this.mySqlClient = mySqlClient;
@@ -38,7 +42,8 @@ public class BDDosis {
 		editRegistroDosis();
 		
 	}
-
+	//BODY:
+	
 	public void getAllDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getAllDosis");
 		consumer.handler(message -> {
@@ -58,30 +63,61 @@ public class BDDosis {
 		});
 	}
 
+	//BODY: { "nif": "12344", "hora_inicio": "19:00" , "dia_semana": 2  }
+	
 	public void getDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosis");
 		consumer.handler(message -> {
 			String datosDosis = message.body();
+			if (utils.checkJson(datosDosis)== true) {
 			JsonObject jsonDosis = new JsonObject(datosDosis);
-			String nif = jsonDosis.getString("nif");
-			String hora_inicio = jsonDosis.getString("hora_inicio");
-			String dia_semana = jsonDosis.getString("dia_semana");
-			Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif
-					+ "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
-			query.execute(res -> {
-				JsonObject resultadoJson = new JsonObject();
-				if (res.succeeded()) {
-					res.result().forEach(v -> {
-						DosisImpl dosis = new DosisImpl(v);
-						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
+			JsonObject jsonComp = new JsonObject();
+
+			boolean comprobacion = jsonDosis.containsKey("nif") && 
+					jsonDosis.containsKey("hora_inicio") && jsonDosis.containsKey("dia_semana") && jsonDosis != null;
+			if(comprobacion) {
+
+					String nif = jsonDosis.getString("nif");
+					String hora_inicio = jsonDosis.getString("hora_inicio");
+					String dia_semana = jsonDosis.getString("dia_semana");
+					Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '"
+							+ nif + "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
+					query.execute(res -> {
+						JsonObject resultadoJson = new JsonObject();
+						if (res.succeeded()) {
+							res.result().forEach(v -> {
+								DosisImpl dosis = new DosisImpl(v);
+								resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
+								System.out.println(resultadoJson);
+								message.reply(resultadoJson);
+
+							});
+						} else {
+							resultadoJson.put("error",
+									"ERROR AL OBTENER LA DOSIS DEL USUARIO CON DNI: " + nif + ",CON HORA DE INICIO:"
+											+ hora_inicio + " Y DÍA DE LA SEMANA:" + dia_semana + " ."
+											+ String.valueOf(res.cause()));
+							message.fail(500, String.valueOf(resultadoJson));
+						}
 					});
 				} else {
-					resultadoJson.put("error","ERROR AL OBTENER LA DOSIS DEL USUARIO CON DNI: "+nif+ ",CON HORA DE INICIO:"+hora_inicio+ " Y DÍA DE LA SEMANA:"+dia_semana+ " ."+ String.valueOf(res.cause()));
+					jsonComp.put("error",
+							"NO SE HAN INTRODUCIDO LOS CAMPOS CORRESPONDIENTES EN EL CUERPO DE LA PETICIÓN.");
+					message.fail(500, String.valueOf(jsonComp));
+
 				}
-				message.reply(resultadoJson);
-			});
+			} else {
+				JsonObject checkJson = new JsonObject();
+				checkJson.put("error", "FORMATO DE JSON NO VÁLIDO.");
+				message.fail(500, String.valueOf(checkJson));
+
+			}
 		});
+
 	}
+
+
+
 
 	public void getDosisPorUsuario() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosisPorUsuario");
@@ -122,6 +158,7 @@ public class BDDosis {
 				} else {
 					resultadoJson.put("error","ERROR AL OBTENER LA DOSIS DEL USUARIO CON DNI: "+nif+  " DEL DÍA : "+ dia_semana +" ."+ String.valueOf(res.cause()));
 				}
+				
 				message.reply(resultadoJson);
 			});
 		});
@@ -443,5 +480,7 @@ public class BDDosis {
 			
 		});
 	}
+	
+
 
 }

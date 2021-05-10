@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Usuario;
 
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonObject; 
 import io.vertx.sqlclient.Row;
 
 public class UsuarioImpl {

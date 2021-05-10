@@ -6,9 +6,9 @@
 #include <ArduinoJson.h>
 
 
-const char* ssid = "MOVISTAR_072E";
-const char* password = "X8Z3J2Jptc6vAkZYRsan";
-const int portHttp = 8080;
+const char* ssid = "ADAMO-9634";
+const char* password = "D3DUFAFZJTT35S";
+const int portHttp = 8081;
 const int portMqtt = 1883;
 String placaId = "";
 
@@ -51,9 +51,7 @@ void setup_wifi(){
 
 void getTest(){
   DynamicJsonDocument doc(1024);
-  //String bodyData = "{"+'"'+"id_pastillero"+'"'+":"+'"'+"192R5T"+'"'+"}";
   doc[String("id_pastillero")] = "192R5T";
-  //JsonObject bodyGet = doc.as<JsonObject>();
   String bodyData = "";
   serializeJson(doc, bodyData);
   Serial.println(bodyData);
