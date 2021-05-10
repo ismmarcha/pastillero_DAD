@@ -5,6 +5,7 @@
 #include <ArduinoHttpClient.h>
 #include <ArduinoJson.h>
 
+#include <rest.h>
 
 const char* ssid = "MOVISTAR_072E";
 const char* password = "X8Z3J2Jptc6vAkZYRsan";
@@ -49,65 +50,27 @@ void setup_wifi(){
   Serial.println(WiFi.localIP());
 }
 
-void getTest(){
-  DynamicJsonDocument doc(1024);
-  //String bodyData = "{"+'"'+"id_pastillero"+'"'+":"+'"'+"192R5T"+'"'+"}";
-  doc[String("id_pastillero")] = "192R5T";
-  //JsonObject bodyGet = doc.as<JsonObject>();
-  String bodyData = "";
-  serializeJson(doc, bodyData);
-  Serial.println(bodyData);
-  Serial.println("making GET request");
-  httpClient.beginRequest();
-  httpClient.get("/api/pastilleros/getPastilleroId");
-  httpClient.sendHeader("Content-Type", "application/json");
-  httpClient.sendHeader("Content-Length", bodyData.length());
-  httpClient.sendHeader("X-Custom-Header", "custom-header-value");
-  httpClient.beginBody();
-  httpClient.print(bodyData);
-  httpClient.endRequest();
-
-  // read the status code and body of the response
-  int statusCode = httpClient.responseStatusCode();
-  String response = httpClient.responseBody();
-
-  Serial.print("GET Status code: ");
-  Serial.println(statusCode);
-  Serial.print("GET Response: ");
-  Serial.println(response);
-
-  Serial.println("Wait five seconds");
-  delay(5000);
-}
-
-void postTest(){
-  DynamicJsonDocument doc(1024);
-  doc[String("id_pastillero")] = "193R5T";
-  doc[String("alias")] = "papá";
-  String bodyData = "";
-  serializeJson(doc, bodyData);
-  Serial.println(bodyData);
-  Serial.println("making POST request ADD PASTILLERO");
-  httpClient.beginRequest();
-  httpClient.post("/api/pastilleros/addPastillero");
-  httpClient.sendHeader("Content-Type", "application/json");
-  httpClient.sendHeader("Content-Length", bodyData.length());
-  httpClient.sendHeader("X-Custom-Header", "custom-header-value");
-  httpClient.beginBody();
-  httpClient.print(bodyData);
-  httpClient.endRequest();
-
-  // read the status code and body of the response
-  int statusCode = httpClient.responseStatusCode();
-  String response = httpClient.responseBody();
-
-  Serial.print("POST Status code: ");
-  Serial.println(statusCode);
-  Serial.print("POST Response: ");
-  Serial.println(response);
-
-  Serial.println("Wait five seconds");
-  delay(5000);
+void restTest(){
+  DynamicJsonDocument bodyGet(1024), bodyPost(1024), bodyPut(1024), bodyDelete(1024);
+  String bodyGetData = "", bodyPostData = "", bodyPutData = "", bodyDeleteData = "";
+  bodyGet[String("id_pastillero")] = "192R5T";
+  serializeJson(bodyGet, bodyGetData);
+  String resGet = doGet(httpClient, "/api/pastilleros/getPastilleroId", bodyGetData);
+  Serial.println("resGet: "+resGet);
+  bodyPost[String("id_pastillero")] = placaId;
+  bodyPost[String("alias")] = "placa_manlorhid";
+  serializeJson(bodyPost, bodyPostData);
+  String resPost = doPost(httpClient, "/api/pastilleros/addPastillero", bodyPostData);
+  Serial.println("posRes: "+resPost);
+  bodyPut[String("id_pastillero")] = placaId;
+  bodyPut[String("alias")] = "placa_manlorhid_editada";
+  serializeJson(bodyPut, bodyPutData);
+  String resPut = doPut(httpClient, "/api/pastilleros/editPastillero", bodyPutData);
+  Serial.println("putRes: "+resPut);
+  bodyDelete[String("id_pastillero")] = placaId;
+  serializeJson(bodyDelete, bodyDeleteData);
+  String resDelete = doDelete(httpClient, "/api/pastilleros", bodyDeleteData);
+  Serial.println("deleteRes: "+resDelete);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -147,9 +110,8 @@ void setup() {
   mqttClient.setServer(server, portMqtt);
   mqttClient.setCallback(callback);
   setup_wifi();
+  restTest();
   delay(1500);
-  getTest();
-  postTest();
 }
 
 void loop() {
