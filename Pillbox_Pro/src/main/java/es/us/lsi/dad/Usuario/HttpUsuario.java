@@ -44,16 +44,16 @@ public class HttpUsuario {
 	}
 	
 	public void getUsuarioNIF(RoutingContext routingContext) {
-		JsonObject jsonUsuario = new JsonObject(routingContext.getBodyAsString());
-		String usuarionif = jsonUsuario.getString("nif");
+		String usuarionif = routingContext.getBodyAsString();
+		if(usuarionif == null) {
+			usuarionif = "{}";	}
 		vertx.eventBus().request("getUsuarioNIF", usuarionif, reply -> {
 			if (reply.succeeded()) {
-				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}

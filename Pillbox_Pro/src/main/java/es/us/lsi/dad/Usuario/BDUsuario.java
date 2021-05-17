@@ -1,9 +1,10 @@
 package es.us.lsi.dad.Usuario;
 
-import java.util.Iterator; 
+import java.util.Iterator;
 
 import java.util.Map.Entry;
 
+import es.us.lsi.dad.Utils.Utils;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -15,6 +16,8 @@ import io.vertx.sqlclient.RowSet;
 public class BDUsuario {
 	Vertx vertx;
 	MySQLPool mySqlClient;
+
+	Utils utils = new Utils();
 
 	public BDUsuario(Vertx vertx, MySQLPool mySqlClient) {
 		this.vertx = vertx;
@@ -52,26 +55,44 @@ public class BDUsuario {
 	}
 
 	public void getUsuarioNIF() {
-
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getUsuarioNIF");
 		consumer.handler(message -> {
 			String usuarionif = message.body();
-			Query<RowSet<Row>> query = mySqlClient
-					.query("SELECT * FROM pastillero_dad.Usuario WHERE nif = '" + usuarionif + "';");
-			query.execute(res -> {
-				JsonObject json = new JsonObject();
+			if (utils.checkJson(usuarionif) == true) {
+				JsonObject jsonUsuarionif = new JsonObject(usuarionif);
+				JsonObject jsonComp = new JsonObject();
 
-				if (res.succeeded()) {
-					res.result().forEach(v -> {
-						json.put(String.valueOf(v.getValue("nif")), v.toJson());
+				boolean comprobacion = jsonUsuarionif.containsKey("nif") && jsonUsuarionif != null;
+				if (comprobacion) {
+
+					Query<RowSet<Row>> query = mySqlClient
+							.query("SELECT * FROM pastillero_dad.Usuario WHERE nif = '" + jsonUsuarionif.getString("nif") + "';");
+					
+					query.execute(res -> {
+						JsonObject resultadoJson = new JsonObject();
+
+						if (res.succeeded()) {
+							res.result().forEach(v -> {
+								UsuarioImpl usuario = new UsuarioImpl(v);
+								resultadoJson.put(String.valueOf(usuario.getNif()), usuario.getJson());
+							});
+							message.reply(resultadoJson);
+						} else {
+							resultadoJson.put("error", "ERROR AL OBTENER EL USUARIO CON NIF: " + usuarionif + " ."
+									+ String.valueOf(res.cause()));
+							message.fail(500, String.valueOf(resultadoJson));
+						}
 					});
-				} else {
-					json.put("error",
-							"ERROR AL OBTENER EL USUARIO CON NIF: " + usuarionif + " ." + String.valueOf(res.cause()));
-
+				}else {
+					jsonComp.put("error",
+							"NO SE HAN INTRODUCIDO LOS CAMPOS CORRESPONDIENTES EN EL CUERPO DE LA PETICIÓN.");
+					message.fail(500, String.valueOf(jsonComp));
 				}
-				message.reply(json);
-			});
+			} else {
+				JsonObject checkJson = new JsonObject();
+				checkJson.put("error", "FORMATO DE JSON NO VÁLIDO.");
+				message.fail(500, String.valueOf(checkJson));
+			}
 		});
 	}
 
