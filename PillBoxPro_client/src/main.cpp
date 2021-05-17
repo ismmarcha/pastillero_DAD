@@ -5,6 +5,7 @@
 #include <ArduinoHttpClient.h>
 #include <ArduinoJson.h>
 
+#include <rest.h>
 
 const char* ssid = "ADAMO-9634";
 const char* password = "D3DUFAFZJTT35S";
@@ -49,6 +50,7 @@ void setup_wifi(){
   Serial.println(WiFi.localIP());
 }
 
+<<<<<<< HEAD
 void getTest(){
   DynamicJsonDocument doc(1024);
   doc[String("id_pastillero")] = "192R5T";
@@ -106,6 +108,29 @@ void postTest(){
 
   Serial.println("Wait five seconds");
   delay(5000);
+=======
+void restTest(){
+  DynamicJsonDocument bodyGet(1024), bodyPost(1024), bodyPut(1024), bodyDelete(1024);
+  String bodyGetData = "", bodyPostData = "", bodyPutData = "", bodyDeleteData = "";
+  bodyGet[String("id_pastillero")] = "192R5T";
+  serializeJson(bodyGet, bodyGetData);
+  String resGet = doGet(httpClient, "/api/pastilleros/getPastilleroId", bodyGetData);
+  Serial.println("resGet: "+resGet);
+  bodyPost[String("id_pastillero")] = placaId;
+  bodyPost[String("alias")] = "placa_manlorhid";
+  serializeJson(bodyPost, bodyPostData);
+  String resPost = doPost(httpClient, "/api/pastilleros/addPastillero", bodyPostData);
+  Serial.println("posRes: "+resPost);
+  bodyPut[String("id_pastillero")] = placaId;
+  bodyPut[String("alias")] = "placa_manlorhid_editada";
+  serializeJson(bodyPut, bodyPutData);
+  String resPut = doPut(httpClient, "/api/pastilleros/editPastillero", bodyPutData);
+  Serial.println("putRes: "+resPut);
+  bodyDelete[String("id_pastillero")] = placaId;
+  serializeJson(bodyDelete, bodyDeleteData);
+  String resDelete = doDelete(httpClient, "/api/pastilleros", bodyDeleteData);
+  Serial.println("deleteRes: "+resDelete);
+>>>>>>> 26f8ea2f4b36c1878da8e4f2d9193545053eadfd
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -145,9 +170,8 @@ void setup() {
   mqttClient.setServer(server, portMqtt);
   mqttClient.setCallback(callback);
   setup_wifi();
+  restTest();
   delay(1500);
-  getTest();
-  postTest();
 }
 
 void loop() {
