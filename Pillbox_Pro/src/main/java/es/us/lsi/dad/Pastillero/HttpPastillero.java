@@ -1,11 +1,9 @@
 package es.us.lsi.dad.Pastillero;
 
-import io.vertx.core.Vertx;  
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-
-
 
 public class HttpPastillero {
 	Vertx vertx;
@@ -13,7 +11,7 @@ public class HttpPastillero {
 	public HttpPastillero(Vertx vertx) {
 		this.vertx = vertx;
 	}
-	
+
 	public void iniciarRouterPastillero(Router router) {
 		router.route("/api/pastilleros/*").handler(BodyHandler.create());
 		router.get("/api/pastilleros").handler(this::getAllPastillero);
@@ -22,9 +20,9 @@ public class HttpPastillero {
 		router.post("/api/pastilleros/addPastillero").handler(this::addPastillero);
 		router.put("/api/pastilleros/editPastillero").handler(this::editPastillero);
 		router.delete("/api/pastilleros").handler(this::deletePastillero);
-		
+
 	}
-	
+
 	public void getAllPastillero(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
@@ -44,7 +42,6 @@ public class HttpPastillero {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
 		String datosPastillero = routingContext.getBodyAsString();
-		System.out.println("Datos Pastillero: "+datosPastillero);
 		vertx.eventBus().request("getPastillero", datosPastillero, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
@@ -52,11 +49,11 @@ public class HttpPastillero {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
-	
+
 	public void getUsuariosPorPastillero(RoutingContext routingContext) {
 		String datosPastillero = routingContext.getBodyAsString();
 		vertx.eventBus().request("getUsuariosPorPastillero", datosPastillero, reply -> {
@@ -66,7 +63,7 @@ public class HttpPastillero {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -80,7 +77,7 @@ public class HttpPastillero {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -94,14 +91,14 @@ public class HttpPastillero {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
 
 	public void editPastillero(RoutingContext routingContext) {
 		String datosPastillero = routingContext.getBodyAsString();
-		
+
 		vertx.eventBus().request("editPastillero", datosPastillero, reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
@@ -109,7 +106,7 @@ public class HttpPastillero {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}

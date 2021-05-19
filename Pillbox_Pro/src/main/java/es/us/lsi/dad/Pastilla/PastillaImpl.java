@@ -23,7 +23,6 @@ public class PastillaImpl {
 		this.id_pastilla = v.getInteger("id_pastilla");
 		this.nombre = v.getString("nombre");
 		this.descripcion = v.getString("descripcion");
-		;
 		this.peso = v.getDouble("peso");
 	}
 	
