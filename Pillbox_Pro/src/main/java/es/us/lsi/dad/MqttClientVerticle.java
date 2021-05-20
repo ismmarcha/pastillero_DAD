@@ -1,16 +1,11 @@
 package es.us.lsi.dad;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
-import io.vertx.mqtt.MqttServer;
-import io.vertx.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttQoS;
 
 public class MqttClientVerticle extends AbstractVerticle {
@@ -26,6 +21,8 @@ public class MqttClientVerticle extends AbstractVerticle {
 		mqttClient.connect(1883, "192.168.1.10", res -> {
 			// mqttClient.disconnect();
 			System.out.print("Conectado correctamente al servidor MQTT en el puerto 1883");
+			DeploymentOptions options = new DeploymentOptions().setWorker(true);
+			vertx.deployVerticle(new TimeVerticle(mqttClient), options);
 			mqttClient.publishHandler(s -> {
 				System.out.println("There are new message in topic: " + s.topicName());
 				System.out.println("Content(as string) of the message: " + s.payload().toString());
