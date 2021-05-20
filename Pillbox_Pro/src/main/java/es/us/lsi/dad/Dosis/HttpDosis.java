@@ -7,12 +7,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
-//2. Dosis por usuario --> HECHO Y PROBADO
-//3. Siguiente dosis por usuario
-//4. Dosis por día y por usuario --> HECHO Y PROBADO
-//5. Agregar pastillas a una dosis (pastilla dosis)
-//6. Registro Dosis ( cuando dosis tomada)  PENSAR (AÑADIR ID USUARIO A  REGISTRO_DOSIS)
-
 public class HttpDosis {
 	Vertx vertx;
 
@@ -36,7 +30,6 @@ public class HttpDosis {
 		router.post("/api/dosis/addRegistroDosis").handler(this::addRegistroDosis);
 		router.delete("/api/dosis/deleteRegistroDosis").handler(this::deleteRegistroDosis);
 		router.put("/api/dosis/editRegistroDosis").handler(this::editRegistroDosis);
-
 	}
 
 	public void getAllDosis(RoutingContext routingContext) {
@@ -56,32 +49,35 @@ public class HttpDosis {
 	public void getDosis(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
+
 		String datosDosis = routingContext.getBodyAsString();
+		if (datosDosis == null) {
+			datosDosis = "{}";
+		}
+
 		vertx.eventBus().request("getDosis", datosDosis, reply -> {
 			if (reply.succeeded()) {
-				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
+
 	}
 
 	public void getDosisPorUsuario(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
-		JsonObject datosUsuario = new JsonObject(routingContext.getBodyAsString());
-		String nifUsuario = datosUsuario.getString("nif");
-		vertx.eventBus().request("getDosisPorUsuario", nifUsuario, reply -> {
+		vertx.eventBus().request("getDosisPorUsuario", routingContext.getBodyAsString(), reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -89,20 +85,14 @@ public class HttpDosis {
 	public void getDosisPorUsuarioYDia(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
-		JsonObject datosDosis = new JsonObject(routingContext.getBodyAsString());
-		String nifUsuario = datosDosis.getString("nif");
-		String dia_semana = datosDosis.getString("dia_semana");
-		JsonObject json = new JsonObject();
-		json.put("nif", nifUsuario);
-		json.put("dia_semana", dia_semana);
-		vertx.eventBus().request("getDosisPorUsuarioYDia", json.toString(), reply -> {
+		vertx.eventBus().request("getDosisPorUsuarioYDia", routingContext.getBodyAsString(), reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -110,11 +100,7 @@ public class HttpDosis {
 	public void getDosisPorUsuarioGroupByDia(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
-		JsonObject datosDosis = new JsonObject(routingContext.getBodyAsString());
-		String nifUsuario = datosDosis.getString("nif");
-		JsonObject json = new JsonObject();
-		json.put("nif", nifUsuario);
-		vertx.eventBus().request("getDosisPorUsuarioGroupByDia", json.toString(), reply -> {
+		vertx.eventBus().request("getDosisPorUsuarioGroupByDia", routingContext.getBodyAsString().toString(), reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				JsonObject jsonReply = new JsonObject(String.valueOf(reply.result().body()));
@@ -135,7 +121,7 @@ public class HttpDosis {
 						.end(String.valueOf(jsonRes));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -143,16 +129,14 @@ public class HttpDosis {
 	public void getSiguienteDosisPorUsuario(RoutingContext routingContext) {
 		// Enviamos petición al canal abierto del verticle BD y devolvemos una respuesta
 		// a la petición REST. Así igual con el resto
-		JsonObject datosUsuario = new JsonObject(routingContext.getBodyAsString());
-		String nifUsuario = datosUsuario.getString("nif");
-		vertx.eventBus().request("getSiguienteDosisPorUsuario", nifUsuario, reply -> {
+		vertx.eventBus().request("getSiguienteDosisPorUsuario", routingContext.getBodyAsString(), reply -> {
 			if (reply.succeeded()) {
 				System.out.println(reply.result().body());
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -166,7 +150,7 @@ public class HttpDosis {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -181,7 +165,7 @@ public class HttpDosis {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -195,7 +179,7 @@ public class HttpDosis {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -210,7 +194,7 @@ public class HttpDosis {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -225,7 +209,7 @@ public class HttpDosis {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -239,7 +223,7 @@ public class HttpDosis {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}
@@ -253,7 +237,7 @@ public class HttpDosis {
 						.end(String.valueOf(reply.result().body()));
 			} else {
 				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
-						.end(String.valueOf(reply.result().body()));
+						.end(String.valueOf(reply.cause().getMessage()));
 			}
 		});
 	}

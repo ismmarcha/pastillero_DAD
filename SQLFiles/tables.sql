@@ -9,8 +9,8 @@ DROP TABLE IF EXISTS Pastillero;
 
 
 CREATE TABLE IF NOT EXISTS Pastillero (
-    id_pastillero VARCHAR(20),
-    alias VARCHAR(30),
+    id_pastillero VARCHAR(100),
+    alias VARCHAR(100),
     
     PRIMARY KEY (id_pastillero)
 );
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS Pastillero (
 
 CREATE TABLE IF NOT EXISTS Usuario (
     nif VARCHAR(9),
-    id_pastillero VARCHAR(20) ,
+    id_pastillero VARCHAR(100) ,
     firstname VARCHAR(30) NOT NULL,
     lastname VARCHAR(30) NOT NULL,
     contraseña VARCHAR(64) NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS Dosis (
 CREATE TABLE IF NOT EXISTS Pastilla_Dosis ( 
 	id_pastilla INT UNSIGNED,
     id_dosis INT UNSIGNED,
-	cantidad DOUBLE,
+	cantidad DOUBLE NOT NULL,
     
 	FOREIGN KEY (id_pastilla) REFERENCES  Pastilla(id_pastilla) ON DELETE CASCADE,
     FOREIGN KEY (id_dosis) REFERENCES Dosis(id_dosis) ON DELETE CASCADE,
@@ -72,7 +72,6 @@ CREATE TABLE IF NOT EXISTS Pastilla_Dosis (
 CREATE TABLE IF NOT EXISTS Registro_Dosis (
     id_registro_dosis INT UNSIGNED AUTO_INCREMENT ,
 	id_dosis INT UNSIGNED,
-
 	fecha_dosis TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     tomada BOOLEAN DEFAULT 0 NOT NULL,
     
