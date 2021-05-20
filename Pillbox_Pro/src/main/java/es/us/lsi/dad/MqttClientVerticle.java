@@ -6,6 +6,7 @@ import java.util.List;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 import io.vertx.mqtt.MqttServer;
@@ -22,19 +23,17 @@ public class MqttClientVerticle extends AbstractVerticle {
 		mqttOptions.setUsername("admin1");
 		mqttOptions.setPassword("123456");
 		mqttClient = MqttClient.create(vertx, mqttOptions);
-		mqttClient.connect(1883, "localhost", s -> {
-			mqttClient.disconnect();
+		mqttClient.connect(1883, "192.168.1.10", s -> {
+			//mqttClient.disconnect();
+			System.out.print("Conectado correctamente al servidor MQTT en el puerto 1883");
+			mqttClient.publish("temperature", Buffer.buffer("adios!"), MqttQoS.AT_LEAST_ONCE, false, false);
 		});
-		
-		client.publish("temperature",
-				  Buffer.buffer("hello"),
-				  MqttQoS.AT_LEAST_ONCE,
-				  false,
-				  false);
+
 	}
 
 	@Override
 	public void stop(Promise<Void> startFuture) {
+		mqttClient.disconnect();
 	}
 
 }

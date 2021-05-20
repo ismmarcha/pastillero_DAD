@@ -6,9 +6,9 @@ public class Main {
 
 	public static void main(String[] args) {
 		Vertx vertx = Vertx.vertx();
-		//Inicia el vértice encargado de recibir las peticiones HTTP (HTTP Server)
-        vertx.deployVerticle(new HttpServerVerticle());
-       vertx.deployVerticle(new MqttClientVerticle());
+		// Inicia el vértice encargado de recibir las peticiones HTTP (HTTP Server)
+		vertx.deployVerticle(new HttpServerVerticle());
+		vertx.deployVerticle(new MqttClientVerticle());
 	}
-	
+
 }

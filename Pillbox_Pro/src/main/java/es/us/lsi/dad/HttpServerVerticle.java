@@ -37,12 +37,13 @@ public class HttpServerVerticle extends AbstractVerticle {
 		// Creamos el servidor HTTP en el puerto 808X
 		httpServer = vertx.createHttpServer();
 
-		httpServer.requestHandler(router::handle).listen(8089, res -> {
+		httpServer.requestHandler(router::handle).listen(8080, res -> {
 
 			if (res.succeeded()) {
 				System.out.println("Servidor HTTP iniciado en el puerto " + res.result().actualPort());
 				startFuture.complete();
 			} else {
+				System.out.println("Fallo al iniciar el servidor HTTP " + res.cause());
 				startFuture.fail(res.cause());
 			}
 		});
