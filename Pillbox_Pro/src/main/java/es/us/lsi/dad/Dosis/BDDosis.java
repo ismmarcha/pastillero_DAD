@@ -78,7 +78,7 @@ public class BDDosis {
 					String dia_semana = jsonDosis.getString("dia_semana");
 
 					Query<RowSet<Row>> query = mySqlClient.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '"
-							+ nif + "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = '" + dia_semana + "';");
+							+ nif + "' AND hora_inicio = '" + hora_inicio + "' AND dia_semana = " + dia_semana + ";");
 
 					query.execute(res -> {
 						JsonObject resultadoJson = new JsonObject();
@@ -125,7 +125,7 @@ public class BDDosis {
 					String nif = jsonUsuario.getString("nif");
 
 					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = " + nif + ";");
+							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
 						if (res.succeeded()) {
@@ -137,15 +137,16 @@ public class BDDosis {
 							} else {
 
 								Query<RowSet<Row>> query = mySqlClient
-										.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = " + nif + ";");
+										.query("SELECT * FROM pastillero_dad.Dosis WHERE nif = '" + nif + "';");
 								query.execute(res2 -> {
 									JsonObject resultadoJson = new JsonObject();
-									if (res.succeeded()) {
+									if (res2.succeeded()) {
+										
 										res2.result().forEach(v -> {
 											DosisImpl dosis = new DosisImpl(v);
 											resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
-											message.reply(resultadoJson);
 										});
+										message.reply(resultadoJson);
 									} else {
 										resultadoJson.put("error", "ERROR AL OBTENER LAS DOSIS DEL USUARIO CON DNI: "
 												+ nif + " ." + String.valueOf(res2.cause()));
@@ -192,7 +193,7 @@ public class BDDosis {
 					int dia_semana = jsonUsuario.getInteger("dia_semana");
 
 					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = " + nif + ";");
+							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
@@ -276,8 +277,8 @@ public class BDDosis {
 										res2.result().forEach(v -> {
 											DosisImpl dosis = new DosisImpl(v);
 											resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
-											message.reply(resultadoJson);
 										});
+										message.reply(resultadoJson);
 									} else {
 										resultadoJson.put("error", "ERROR AL OBTENER LAS DOSIS DEL USUARIO CON DNI: "
 												+ nif + " ." + String.valueOf(res2.cause()));
@@ -318,7 +319,7 @@ public class BDDosis {
 
 					String nif = jsonUsuario.getString("nif");
 					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = " + nif + ";");
+							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
@@ -342,8 +343,8 @@ public class BDDosis {
 										res2.result().forEach(v -> {
 											DosisImpl dosis = new DosisImpl(v);
 											resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
-											message.reply(resultadoJson);
 										});
+										message.reply(resultadoJson);
 									} else {
 										resultadoJson.put("error",
 												"ERROR AL OBTENER LA SIGUIENTE DOSIS DEL USUARIO CON DNI: " + nif + " ."
@@ -601,7 +602,7 @@ public class BDDosis {
 					String nif = jsonUsuario.getString("nif");
 
 					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = " + nif + ";");
+							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
@@ -614,8 +615,8 @@ public class BDDosis {
 							} else {
 								Query<RowSet<Row>> query2 = mySqlClient
 										.query("SELECT COUNT(*) as nDosis FROM pastillero_dad.Registro_Dosis "
-												+ "JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = "
-												+ nif + ";");
+												+ "JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = '"
+												+ nif + "';");
 								query2.execute(res2 -> {
 									JsonObject json2 = new JsonObject();
 									if (res2.succeeded()) {
@@ -629,8 +630,8 @@ public class BDDosis {
 
 											Query<RowSet<Row>> query = mySqlClient.query(
 													"SELECT Registro_Dosis.id_registro_dosis, Registro_Dosis.id_dosis, Registro_Dosis.tomada FROM pastillero_dad.Registro_Dosis "
-															+ "JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = "
-															+ nif + ";");
+															+ "JOIN pastillero_dad.dosis ON registro_dosis.id_dosis = dosis.id_dosis WHERE dosis.nif = '"
+															+ nif + "';");
 
 											query.execute(res3 -> {
 
@@ -641,9 +642,8 @@ public class BDDosis {
 														resultadoJson.put(
 																String.valueOf(RegistroDosis.getId_registro_dosis()),
 																RegistroDosis.getJson());
-														message.reply(resultadoJson);
-
 													});
+													message.reply(resultadoJson);
 												} else {
 													resultadoJson.put("error",
 															"ERROR AL OBTENER TODOS LOS REGISTROS DE LA DOSIS DEL USUARIO CON NIF: "
@@ -811,7 +811,7 @@ public class BDDosis {
 		});
 	}
 
-	// EJEMPLO BODY : {"id_registro_dosis": 2, "tomada" : false}
+	// EJEMPLO BODY : {"id_registro_dosis": 1, "tomada" : true}
 	public void editRegistroDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("editRegistroDosis");
 		consumer.handler(message -> {

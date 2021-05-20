@@ -112,8 +112,8 @@ public class BDUsuario {
 				if (comprobacion) {
 
 					Query<RowSet<Row>> query = mySqlClient
-							.query("SELECT * FROM pastillero_dad.Usuario WHERE id_cuidador = "
-									+ jsonNifCuidador.getString("id_cuidador") + ";");
+							.query("SELECT * FROM pastillero_dad.Usuario WHERE id_cuidador = '"
+									+ jsonNifCuidador.getString("id_cuidador") + "';");
 
 					query.execute(res -> {
 						JsonObject json = new JsonObject();
@@ -125,8 +125,8 @@ public class BDUsuario {
 							});
 							message.reply(json);
 						} else {
-							json.put("error", "ERROR AL OBTENER LOS PACIENTES DEL CUIDADOR CON ID: " + Id_cuidador
-									+ " ." + String.valueOf(res.cause()));
+							json.put("error", "ERROR AL OBTENER LOS PACIENTES DEL CUIDADOR CON ID: '" + Id_cuidador
+									+ "' ." + String.valueOf(res.cause()));
 							message.fail(500, String.valueOf(json));
 						}
 					});

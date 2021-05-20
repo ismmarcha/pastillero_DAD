@@ -164,7 +164,7 @@ public class BDPastilla {
 		});
 	}
 
-	// EJEMPLO BODY : {"nombre": "Sintrom","peso":200}
+	// EJEMPLO BODY : {"nombre": "Sintrom Plus","peso":200}
 	public void addPastilla() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addPastilla");
 		consumer.handler(message -> {
@@ -586,8 +586,8 @@ public class BDPastilla {
 											PastillaImpl pastilla = new PastillaImpl(v);
 											resultadoJson.put(String.valueOf(pastilla.getId_pastilla()),
 													pastilla.getJson());
-											message.reply(resultadoJson);
 										});
+										message.reply(resultadoJson);
 									} else {
 										resultadoJson.put("error",
 												"ERROR AL OBTENER LAS PASTILLAS DEL USUARIO CON NIF: " + nif + " ."

@@ -139,7 +139,57 @@ public class BDPastillero {
 		});
 	}
 
-	// EJEMPLO BODY: {"id_pastillero":"f1e5d4fyr83djwi2o3o3e247hg7fg1211420135g" }
+
+	// EJEMPLO BODY: {"id_pastillero":"35glqp12qp034216o3o3e247hg7fg1r223019203k" , "alias" :"Pastillero de la tía Carmen"}
+	public void addPastillero() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("addPastillero");
+		consumer.handler(message -> {
+
+			String datosPastillero = message.body();
+			if (utils.checkJson(datosPastillero) == true) {
+				JsonObject jsonPastillero = new JsonObject(datosPastillero);
+				JsonObject jsonComp = new JsonObject();
+
+				boolean comprobacion = jsonPastillero.containsKey("id_pastillero") && jsonPastillero != null;
+
+				if (comprobacion) {
+					Query<RowSet<Row>> query = null;
+					if (jsonPastillero.containsKey("alias")) {
+						query = mySqlClient.query("INSERT INTO Pastillero(id_pastillero, alias) VALUES ('"
+								+ jsonPastillero.getString("id_pastillero") + "','" + jsonPastillero.getString("alias")
+								+ "');");
+					} else {
+						query = mySqlClient.query("INSERT INTO Pastillero(id_pastillero) VALUES ('"
+								+ jsonPastillero.getString("id_pastillero") + "');");
+					}
+
+					query.execute(res -> {
+						JsonObject json = new JsonObject();
+						if (res.succeeded()) {
+							json.put(jsonPastillero.getString("id_pastillero"),
+									"AÑADIDO EL PASTILLERO CON ID:  " + jsonPastillero.getString("id_pastillero"));
+							message.reply(json);
+						} else {
+							json.put("error", "ERROR AL AÑADIR EL PASTILLERO CON ID: "
+									+ jsonPastillero.getString("id_pastillero"));
+							message.fail(500, String.valueOf(json));
+						}
+
+					});
+				} else {
+					jsonComp.put("error",
+							"NO SE HAN INTRODUCIDO LOS CAMPOS CORRESPONDIENTES EN EL CUERPO DE LA PETICIÓN.");
+					message.fail(500, String.valueOf(jsonComp));
+				}
+			} else {
+				JsonObject checkJson = new JsonObject();
+				checkJson.put("error", "FORMATO DE JSON NO VÁLIDO.");
+				message.fail(500, String.valueOf(checkJson));
+			}
+		});
+	}
+
+	// EJEMPLO BODY: {"id_pastillero":"35glqp12qp034216o3o3e247hg7fg1r223019203k" }
 	public void deletePastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("deletePastillero");
 		consumer.handler(message -> {
@@ -201,56 +251,7 @@ public class BDPastillero {
 		});
 	}
 
-	// EJEMPLO BODY: {"id_pastillero":"35glqp12qp034216o3o3e247hg7fg1r223019203k" , "alias" :"Pastillero de la tía Carmen"}
-	public void addPastillero() {
-		MessageConsumer<String> consumer = vertx.eventBus().consumer("addPastillero");
-		consumer.handler(message -> {
-
-			String datosPastillero = message.body();
-			if (utils.checkJson(datosPastillero) == true) {
-				JsonObject jsonPastillero = new JsonObject(datosPastillero);
-				JsonObject jsonComp = new JsonObject();
-
-				boolean comprobacion = jsonPastillero.containsKey("id_pastillero") && jsonPastillero != null;
-
-				if (comprobacion) {
-					Query<RowSet<Row>> query = null;
-					if (jsonPastillero.containsKey("alias")) {
-						query = mySqlClient.query("INSERT INTO Pastillero(id_pastillero, alias) VALUES ('"
-								+ jsonPastillero.getString("id_pastillero") + "','" + jsonPastillero.getString("alias")
-								+ "');");
-					} else {
-						query = mySqlClient.query("INSERT INTO Pastillero(id_pastillero) VALUES ('"
-								+ jsonPastillero.getString("id_pastillero") + "');");
-					}
-
-					query.execute(res -> {
-						JsonObject json = new JsonObject();
-						if (res.succeeded()) {
-							json.put(jsonPastillero.getString("id_pastillero"),
-									"AÑADIDO EL PASTILLERO CON ID:  " + jsonPastillero.getString("id_pastillero"));
-							message.reply(json);
-						} else {
-							json.put("error", "ERROR AL AÑADIR EL PASTILLERO CON ID: "
-									+ jsonPastillero.getString("id_pastillero"));
-							message.fail(500, String.valueOf(json));
-						}
-
-					});
-				} else {
-					jsonComp.put("error",
-							"NO SE HAN INTRODUCIDO LOS CAMPOS CORRESPONDIENTES EN EL CUERPO DE LA PETICIÓN.");
-					message.fail(500, String.valueOf(jsonComp));
-				}
-			} else {
-				JsonObject checkJson = new JsonObject();
-				checkJson.put("error", "FORMATO DE JSON NO VÁLIDO.");
-				message.fail(500, String.valueOf(checkJson));
-			}
-		});
-	}
-
-	// EJEMPLO BODY: {"id_pastillero":"w1e2d4f5ffeecnss3fpol247hg7fg1244423435g" , "alias" :"Pastillero de la tía María del Carmen"}
+	// EJEMPLO BODY: {"id_pastillero":"w1e2d4f5ffeecnss3fpol247hg7fg1244423435g" , "alias" :"Pastillero de la tía Hidalga"}
 	public void editPastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("editPastillero");
 		consumer.handler(message -> {
@@ -303,7 +304,6 @@ public class BDPastillero {
 												+ " " + res2.cause());
 										message.fail(500, String.valueOf(json2));
 									}
-
 								});
 							} else {
 								json1.put("error", "ERROR AL EDITAR EL PASTILLERO. ERROR: " + res1.cause());
