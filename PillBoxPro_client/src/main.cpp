@@ -16,7 +16,7 @@
 
 const char *ssid = "MOVISTAR_072E";
 const char *password = "X8Z3J2Jptc6vAkZYRsan";
-const int portHttp = 8099;
+const int portHttp = 8082;
 const int portMqtt = 1883;
 String placaId = "";
 const byte hashLen = 20; /* 256-bit */
@@ -217,7 +217,7 @@ void reconnect()
     {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      String rutaMsg = "placa/" + placaId;
+      String rutaMsg = "placa/" + placaId+"/status";
       mqttClient.publish(rutaMsg.c_str(), "conectado");
       // ... and resubscribe
       mqttClient.subscribe(rutaMsg.c_str());
@@ -290,18 +290,8 @@ void testBuzzer()
   delay(1000);
 }
 
-void setup()
+void setupGyro()
 {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  mqttClient.setServer(server, portMqtt);
-  mqttClient.setCallback(callback);
-  //setupWifi();
-  //registrarPlaca();
-  //setupServo();
-  //testServo();
-  checkI2CAddresses();
-  testLCD();
   if (!mpu.begin())
   {
     Serial.println("Failed to find MPU6050 chip");
@@ -311,7 +301,23 @@ void setup()
     }
   }
   Serial.println("MPU6050 Found!");
+}
+
+void setup()
+{
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  mqttClient.setServer(server, portMqtt);
+  mqttClient.setCallback(callback);
+  setupWifi();
+  registrarPlaca();
+  reconnect();
+  //setupServo();
+  //testServo();
+  //checkI2CAddresses();
+  //testLCD();
   //setupBuzzer();
+  //setupGyro
   delay(2000);
 }
 
@@ -323,10 +329,10 @@ void loop()
   }
   mqttClient.loop();*/
   //testBuzzer();
-  time_t now = time(nullptr);
+  /*time_t now = time(nullptr);
   lcd.setCursor(1, 0);
   lcd.print("Hora actual");
-  lcd.setCursor(1, 1);
+  lcd.setCursor(1, 1);*/
   //lcd.print(hour(now)+":"+minute(now)+":"+second(now));
   delay(1000);
 }
