@@ -1,34 +1,35 @@
 #include <Arduino.h>
-#include <PubSubClient.h>
-#include <Ethernet.h>
-#include <ESP8266WiFi.h>
-#include <ArduinoHttpClient.h>
-#include <ArduinoJson.h>
-#include <Servo.h>
-#include <Hash.h>
+#include <PubSubClient.h>      //MQTT
+#include <ESP8266WiFi.h>       //WIFI
+#include <ArduinoHttpClient.h> //HTTP
+#include <ArduinoJson.h>       //JSON
+#include <Servo.h>             //SERVO
+#include <Hash.h>              //SHA1 HASH
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <Time.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_MPU6050.h>
+#include <LiquidCrystal_I2C.h> //LCD
+#include <Time.h>              //TIME INTERNET
+#include <Adafruit_Sensor.h>   //GYRO
+#include <Adafruit_MPU6050.h>  //GYRO
 
 #include <rest.h>
+#include <servo_personal.h>
+#include <hashMac.h>
 
 const char *ssid = "MOVISTAR_072E";
 const char *password = "X8Z3J2Jptc6vAkZYRsan";
 const int portHttp = 8082;
 const int portMqtt = 1883;
-String placaId = "";
 const byte hashLen = 20; /* 256-bit */
 const byte macLen = 6;
+String placaId = "";
 byte mac[macLen];
 byte hashMac[hashLen];
 
 WiFiClient espWifiClient;
 IPAddress server(192, 168, 1, 10);
+//IPAddress server(10, 100, 24, 91);
 PubSubClient mqttClient(espWifiClient);
 HttpClient httpClient = HttpClient(espWifiClient, server, portHttp);
-Servo servo;
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 Adafruit_MPU6050 mpu;
 
@@ -42,33 +43,6 @@ String macToStr(const uint8_t *mac)
       result += ':';
   }
   return result;
-}
-
-String hashToString(const byte *hash)
-{
-  String result;
-  char buffer[20];
-  for (uint16_t i = 0; i < hashLen; i++)
-  {
-    sprintf(buffer, "%02x", hash[i]);
-    result += buffer;
-  }
-  return result;
-}
-
-byte *doHashMac(uint8_t *macIn, byte *hashOut)
-{
-  sha1((char *)macIn, &hashOut[0]);
-  return hashOut;
-}
-
-bool checkHashMac(String hashIn)
-{
-  if ((hashToString(hashMac)).equals(hashIn))
-  {
-    return true;
-  }
-  return false;
 }
 
 void setupTime()
@@ -104,7 +78,7 @@ void setupWifi()
 
   WiFi.macAddress(mac);
   doHashMac(mac, hashMac);
-  placaId = hashToString(hashMac);
+  placaId = hashToString(hashMac, hashLen);
   setupTime();
   //byte * h = (byte*)"E38Df4AABA2A8949353A35CD3E3516A83AB1073276788B65F6321E65CB74";
   //checkHashMac(mac);
@@ -177,62 +151,6 @@ void registrarPlaca()
   }
 }
 
-void setupServo()
-{
-  servo.attach(2); //Pin D4
-  servo.write(0);
-}
-
-void testServo()
-{
-  for (int i = 0; i < 180; i++)
-  {
-    servo.write(i);
-    Serial.println(i);
-    delay(100);
-  }
-}
-
-void callback(char *topic, byte *payload, unsigned int length)
-{
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (unsigned int i = 0; i < length; i++)
-  {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-}
-
-void reconnect()
-{
-  // Loop until we're reconnected
-  while (!mqttClient.connected())
-  {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    const char *placaIdChar = placaId.c_str();
-    if (mqttClient.connect(placaIdChar, "admin1", "123456"))
-    {
-      Serial.println("connected");
-      // Once connected, publish an announcement...
-      String rutaMsg = "placa/" + placaId+"/status";
-      mqttClient.publish(rutaMsg.c_str(), "conectado");
-      // ... and resubscribe
-      mqttClient.subscribe(rutaMsg.c_str());
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
-
 void checkI2CAddresses()
 {
   while (!Serial)
@@ -301,23 +219,186 @@ void setupGyro()
     }
   }
   Serial.println("MPU6050 Found!");
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  Serial.print("Accelerometer range set to: ");
+  switch (mpu.getAccelerometerRange())
+  {
+  case MPU6050_RANGE_2_G:
+    Serial.println("+-2G");
+    break;
+  case MPU6050_RANGE_4_G:
+    Serial.println("+-4G");
+    break;
+  case MPU6050_RANGE_8_G:
+    Serial.println("+-8G");
+    break;
+  case MPU6050_RANGE_16_G:
+    Serial.println("+-16G");
+    break;
+  }
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  Serial.print("Gyro range set to: ");
+  switch (mpu.getGyroRange())
+  {
+  case MPU6050_RANGE_250_DEG:
+    Serial.println("+- 250 deg/s");
+    break;
+  case MPU6050_RANGE_500_DEG:
+    Serial.println("+- 500 deg/s");
+    break;
+  case MPU6050_RANGE_1000_DEG:
+    Serial.println("+- 1000 deg/s");
+    break;
+  case MPU6050_RANGE_2000_DEG:
+    Serial.println("+- 2000 deg/s");
+    break;
+  }
+
+  mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
+  Serial.print("Filter bandwidth set to: ");
+  switch (mpu.getFilterBandwidth())
+  {
+  case MPU6050_BAND_260_HZ:
+    Serial.println("260 Hz");
+    break;
+  case MPU6050_BAND_184_HZ:
+    Serial.println("184 Hz");
+    break;
+  case MPU6050_BAND_94_HZ:
+    Serial.println("94 Hz");
+    break;
+  case MPU6050_BAND_44_HZ:
+    Serial.println("44 Hz");
+    break;
+  case MPU6050_BAND_21_HZ:
+    Serial.println("21 Hz");
+    break;
+  case MPU6050_BAND_10_HZ:
+    Serial.println("10 Hz");
+    break;
+  case MPU6050_BAND_5_HZ:
+    Serial.println("5 Hz");
+    break;
+  }
+  Serial.println("");
+  delay(100);
+}
+
+void testGyro()
+{
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+
+  /* Print out the values */
+  Serial.print("Acceleration X: ");
+  Serial.print(a.acceleration.x);
+  Serial.print(", Y: ");
+  Serial.print(a.acceleration.y);
+  Serial.print(", Z: ");
+  Serial.print(a.acceleration.z);
+  Serial.println(" m/s^2");
+
+  Serial.print("Rotation X: ");
+  Serial.print(g.gyro.x);
+  Serial.print(", Y: ");
+  Serial.print(g.gyro.y);
+  Serial.print(", Z: ");
+  Serial.print(g.gyro.z);
+  Serial.println(" rad/s");
+
+  Serial.print("Temperature: ");
+  Serial.print(temp.temperature);
+  Serial.println(" degC");
+
+  Serial.println("");
+}
+
+void callbackMqtt(char *topic, byte *payload, unsigned int length)
+{
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  String rutaMsg = "placa/" + String(placaId) + "/move";
+  String topicStr = String(topic);
+  if (topicStr.equals(rutaMsg))
+  {
+    String res;
+    for (unsigned int i = 0; i < length; i++)
+    {
+      res += (char)payload[i];
+      //Serial.print((char)payload[i]);
+    }
+    const String value = "1";
+    if (res.equals(value))
+    {
+      int readServo = servoRead();
+      if (readServo >= 180)
+      {
+        servoWrite(0);
+      }
+      else
+      {
+        servoWrite(readServo + 45);
+      }
+      delay(1000);
+      Serial.print("Servo: ");
+      Serial.println(servoRead());
+    }
+  }
+  Serial.println();
+}
+
+void mqttSetup()
+{
+  mqttClient.setServer(server, portMqtt);
+  mqttClient.setCallback(callbackMqtt);
+}
+
+void mqttConnect()
+{
+  // Loop until we're reconnected
+  while (!mqttClient.connected())
+  {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    //const char *placaIdChar = placaIdMqtt;
+    if (mqttClient.connect(placaId.c_str(), "admin1", "123456"))
+    {
+      Serial.println("connected");
+      // Once connected, publish an announcement...
+      String rutaMsg = "placa/" + String(placaId) + "/";
+      Serial.println("Subscrito a la ruta: " + rutaMsg);
+      mqttClient.publish(rutaMsg.c_str(), "conectado");
+      // ... and resubscribe
+      rutaMsg += "#";
+      mqttClient.subscribe(rutaMsg.c_str());
+    }
+    else
+    {
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
 }
 
 void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  mqttClient.setServer(server, portMqtt);
-  mqttClient.setCallback(callback);
+
   setupWifi();
   registrarPlaca();
-  reconnect();
-  //setupServo();
+  servoSetup();
+  mqttSetup();
+  mqttConnect();
   //testServo();
   //checkI2CAddresses();
   //testLCD();
   //setupBuzzer();
-  //setupGyro
+  //setupGyro();
   delay(2000);
 }
 
@@ -326,13 +407,19 @@ void loop()
   // put your main code here, to run repeatedly:
   /*if (!mqttClient.connected()) {
     reconnect();
-  }
-  mqttClient.loop();*/
+  }*/
+  //testServo();
   //testBuzzer();
   /*time_t now = time(nullptr);
   lcd.setCursor(1, 0);
   lcd.print("Hora actual");
   lcd.setCursor(1, 1);*/
   //lcd.print(hour(now)+":"+minute(now)+":"+second(now));
-  delay(1000);
+
+  /* Get new sensor events with the readings */
+
+  //testGyro();
+  //delay(1000);
+  //loopMqtt();
+  mqttClient.loop();
 }

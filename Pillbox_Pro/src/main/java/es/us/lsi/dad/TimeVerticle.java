@@ -31,7 +31,7 @@ public class TimeVerticle extends AbstractVerticle {
 	public void start(Promise<Void> startFuture) {
 		siguientesDosis = new HashMap<String, String>();
 		siguienteDosisTime = new HashMap<String, LocalTime>();
-		siguientesDosis.put("a8df25211e38f106b2602c3cb5da01c66616160a", "20:03");
+		siguientesDosis.put("a8df25211e38f106b2602c3cb5da01c66616160a", "12:00");
 
 		for (Map.Entry<String, String> entry : siguientesDosis.entrySet()) {
 			siguienteDosisTime.put(entry.getKey(), LocalTime.parse(entry.getValue()));
@@ -63,8 +63,9 @@ public class TimeVerticle extends AbstractVerticle {
 			System.out.println("Local: "+now.toString());
 			if (entry.getValue().compareTo(now) <= 0) {
 				mqttClient.publish("placa/" + entry.getKey() + "/move",
-						Buffer.buffer(entry.getValue().toString()),
+						Buffer.buffer("1"),
 						MqttQoS.AT_LEAST_ONCE, false, false);
+				siguienteDosisTime.remove(entry.getKey());
 			}
 		}
 	}
