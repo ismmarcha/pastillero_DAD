@@ -115,3 +115,33 @@ String doDelete(HttpClient httpClient, String uri, String bodyData){
     serializeJson(res, resData);
     return resData;
 }
+
+
+/*
+void restTest()
+{
+  DynamicJsonDocument bodyGet(1024), bodyPost(1024), bodyPut(1024), bodyDelete(1024);
+  String bodyGetData = "", bodyPostData = "", bodyPutData = "", bodyDeleteData = "";
+  bodyGet[String("id_pastillero")] = "192R5T";
+  serializeJson(bodyGet, bodyGetData);
+  String resGet = doGet(httpClient, "/api/pastilleros/getPastilleroId", bodyGetData);
+  delay(2500);
+  Serial.println("resGet: " + resGet);
+  bodyPost[String("id_pastillero")] = placaId;
+  bodyPost[String("alias")] = "placa_manlorhid";
+  serializeJson(bodyPost, bodyPostData);
+  String resPost = doPost(httpClient, "/api/pastilleros/addPastillero", bodyPostData);
+  delay(2500);
+  Serial.println("posRes: " + resPost);
+  bodyPut[String("id_pastillero")] = placaId;
+  bodyPut[String("alias")] = "placa_manlorhid_editada";
+  serializeJson(bodyPut, bodyPutData);
+  String resPut = doPut(httpClient, "/api/pastilleros/editPastillero", bodyPutData);
+  delay(2500);
+  Serial.println("putRes: " + resPut);
+  bodyDelete[String("id_pastillero")] = placaId;
+  serializeJson(bodyDelete, bodyDeleteData);
+  String resDelete = doDelete(httpClient, "/api/pastilleros", bodyDeleteData);
+  Serial.println("deleteRes: " + resDelete);
+}
+*/
