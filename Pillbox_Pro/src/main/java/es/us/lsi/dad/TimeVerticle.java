@@ -15,6 +15,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.mqtt.MqttClient;
 
 public class TimeVerticle extends AbstractVerticle {
@@ -31,7 +32,7 @@ public class TimeVerticle extends AbstractVerticle {
 	public void start(Promise<Void> startFuture) {
 		siguientesDosis = new HashMap<String, String>();
 		siguienteDosisTime = new HashMap<String, LocalTime>();
-		siguientesDosis.put("a8df25211e38f106b2602c3cb5da01c66616160a", "12:00");
+		siguientesDosis.put("a8df25211e38f106b2602c3cb5da01c66616160a", "11:00");
 
 		for (Map.Entry<String, String> entry : siguientesDosis.entrySet()) {
 			siguienteDosisTime.put(entry.getKey(), LocalTime.parse(entry.getValue()));
@@ -59,13 +60,17 @@ public class TimeVerticle extends AbstractVerticle {
 		int hour = now.getHour();
 		int minute = now.getMinute();
 		for (Map.Entry<String, LocalTime> entry : siguienteDosisTime.entrySet()) {
-			System.out.println("BD: "+entry.getValue().toString());
-			System.out.println("Local: "+now.toString());
+			System.out.println("BD: " + entry.getValue().toString());
+			System.out.println("Local: " + now.toString());
 			if (entry.getValue().compareTo(now) <= 0) {
-				mqttClient.publish("placa/" + entry.getKey() + "/move",
-						Buffer.buffer("1"),
-						MqttQoS.AT_LEAST_ONCE, false, false);
-				siguienteDosisTime.remove(entry.getKey());
+				mqttClient.publish("placa/" + entry.getKey() + "/move", Buffer.buffer("1"), MqttQoS.AT_LEAST_ONCE,
+						false, false);
+				JsonObject datosNextDosis = new JsonObject();
+				datosNextDosis.put("dia", "L");
+				datosNextDosis.put("hora", entry.getValue().toString());
+				mqttClient.publish("placa/" + entry.getKey() + "/nextDosis", datosNextDosis.toBuffer(), MqttQoS.AT_LEAST_ONCE,
+						false, false);
+				//siguienteDosisTime.remove(entry.getKey());
 			}
 		}
 	}

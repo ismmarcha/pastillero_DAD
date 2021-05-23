@@ -30,7 +30,7 @@ HttpClient httpClient = HttpClient(espWifiClient, server, portHttp);
 
 void setupTime()
 {
-  configTime(3 * 3600, 0, "pool.ntp.org", "time.nist.gov");
+  configTime(2 * 3600, 0, "pool.ntp.org", "time.nist.gov");
   Serial.println("\nWaiting for time");
   while (!time(nullptr))
   {
@@ -112,11 +112,12 @@ void callbackMqtt(char *topic, byte *payload, unsigned int length)
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
-  String rutaMsg = "placa/" + String(placaId) + "/move";
+  String rutaMove = "placa/" + String(placaId) + "/move";
+  String rutaNextDosis = "placa/" + String(placaId) + "/nextDosis";
   String topicStr = String(topic);
-  if (topicStr.equals(rutaMsg))
+  String res;
+  if (topicStr.equals(rutaMove))
   {
-    String res;
     for (unsigned int i = 0; i < length; i++)
     {
       res += (char)payload[i];
@@ -134,10 +135,21 @@ void callbackMqtt(char *topic, byte *payload, unsigned int length)
       {
         servo1Write(readServo + 45);
       }
-      delay(1000);
       Serial.print("Servo1: ");
       Serial.println(servo1Read());
     }
+  }
+  if (topicStr.equals(rutaNextDosis))
+  {
+    DynamicJsonDocument jsonNextDosis(1024);
+    for (unsigned int i = 0; i < length; i++)
+    {
+      res += (char)payload[i];
+    }
+    deserializeJson(jsonNextDosis, res);
+    String dia = jsonNextDosis[String("dia")];
+    String hora = jsonNextDosis[String("hora")];
+    writeLCD(dia+"->"+hora, 1,3);
   }
   Serial.println();
 }
@@ -186,13 +198,13 @@ void setup()
   setupWifi();
   buzzerSetup();
   servoSetup();
+  checkI2CAddresses();
   mqttSetup();
   mpuSetup();
   setupLCD();
 
   writeLCD("Hora actual:", 1, 0);
   writeLCD("Hora dosis: ", 1, 2);
-  checkI2CAddresses();
   //testLCD();
   mqttConnect();
   //servoTest();
@@ -201,18 +213,55 @@ void setup()
   delay(2000);
 }
 
+void mostrarHora()
+{
+  time_t now = time(nullptr);
+  struct tm *timeinfo;
+  time(&now);
+  timeinfo = localtime(&now);
+  int hora = timeinfo->tm_hour;
+  int minuto = timeinfo->tm_min;
+  int segundo = timeinfo->tm_sec;
+  String horaStr = "";
+  String minutoStr = "";
+  String segundoStr = "";
+  if (hora < 10)
+  {
+    horaStr = "0" + String(hora);
+  }
+  else
+  {
+    horaStr = String(hora);
+  }
+  if (minuto < 10)
+  {
+    minutoStr = "0" + String(minuto);
+  }
+  else
+  {
+    minutoStr = String(minuto);
+  }
+  if (segundo < 10)
+  {
+    segundoStr = "0" + String(segundo);
+  }
+  else
+  {
+    segundoStr = String(segundo);
+  }
+  writeLCD(horaStr + ":" + minutoStr + ":" + segundoStr, 1, 1);
+}
 void loop()
 {
   // put your main code here, to run repeatedly:
-  if (!mqttClient.connected()) {
+  if (!mqttClient.connected())
+  {
     mqttConnect();
   }
   //testServo();
   //testBuzzer();
-  /*time_t now = time(nullptr);
-  lcd.setCursor(1, 0);
-  lcd.print("Hora actual");
-  lcd.setCursor(1, 1);*/
+  mostrarHora();
+  //Serial.println(hora);
   //lcd.print(hour(now)+":"+minute(now)+":"+second(now));
 
   /* Get new sensor events with the readings */
