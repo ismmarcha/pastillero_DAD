@@ -13,6 +13,7 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
 public class BDDosis {
+	int h = 0;
 	Vertx vertx;
 	MySQLPool mySqlClient;
 
@@ -904,6 +905,7 @@ public class BDDosis {
 	
 	
 	public void getSiguienteDosisByPastillero() {
+		h = 0;
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisByPastillero");
 		consumer.handler(message -> {
 			JsonObject jsonRes = new JsonObject();
@@ -932,34 +934,33 @@ public class BDDosis {
 											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now())) "
 											+ " LIMIT 1;");
 									
-									System.out.println("SELECT dia_semana, hora_inicio "
-											+ "FROM Dosis " + "JOIN pastillero_dad.Usuario ON Usuario.nif = dosis.nif "
-											+ "WHERE id_pastillero = '" + v.getString("id_pastillero") + "' ORDER BY "
-											+ "if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, "
-											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), "
-											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now())) "
-											+ " LIMIT 1;");
-
 									query3.execute(res3 -> {
 										if (res3.succeeded()) {
+											
 											res3.result().forEach(d -> {
+												
 												JsonObject jsonResultDosis = new JsonObject();
 												jsonResultDosis.put(d.getInteger("dia_semana").toString(),
 														d.getString("hora_inicio"));
 												
 												jsonRes.put(v.getString("id_pastillero"), jsonResultDosis);
 												
-												System.out.println("DEL SYSOUT " + jsonRes.toString());
+												//System.out.println("DEL SYSOUT " + jsonRes.toString());
+													
 											});
-										
+											h = h + 1;
+											if ( h == row.getInteger("nPastilleros")) {
+												 message.reply(jsonRes);
+												}
 										} else {
 											jsonDatosDosis.put("error",
 													"ERROR AL OBTENER LAS SIGUIENTES DOSIS DE CADA PASTILLERO REGISTRADO.");
 											message.fail(500, String.valueOf(jsonDatosDosis));
 										}
+
+	
 									});
-								});
-								
+								});							
 							} else {
 								jsonRes.put("error", "ERROR AL OBTENER LOS PASTILLEROS REGISTRADOS.");
 								message.fail(500, String.valueOf(jsonRes));
@@ -969,10 +970,9 @@ public class BDDosis {
 				} else {
 					jsonRes.put("error", "ERROR AL CONTABILIZAR LOS PASTILLEROS REGISTRADOS.");
 					message.fail(500, String.valueOf(jsonRes));
-				}
-				
+				}	
 			});
-			
+	
 		});
 	}
 }
