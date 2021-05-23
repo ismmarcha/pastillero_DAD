@@ -18,7 +18,7 @@ public class MqttClientVerticle extends AbstractVerticle {
 		mqttOptions.setUsername("admin1");
 		mqttOptions.setPassword("123456");
 		mqttClient = MqttClient.create(vertx, mqttOptions);
-		mqttClient.connect(1883, "192.168.1.10", res -> {
+		mqttClient.connect(1883, "192.168.1.175", res -> {
 			// mqttClient.disconnect();
 			System.out.print("Conectado correctamente al servidor MQTT en el puerto 1883");
 			DeploymentOptions options = new DeploymentOptions().setWorker(true);

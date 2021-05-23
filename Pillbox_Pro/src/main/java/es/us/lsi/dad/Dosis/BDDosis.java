@@ -38,6 +38,17 @@ public class BDDosis {
 		addRegistroDosis();
 		deleteRegistroDosis();
 		editRegistroDosis();
+		
+		getSiguienteDosisByPastillero();
+		
+		vertx.eventBus().request("getSiguienteDosisByPastillero", "getSiguienteDosisByPastillero", reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				
+			} else {
+				System.out.println(reply.cause());
+			}
+		});
 
 	}
 
@@ -886,6 +897,82 @@ public class BDDosis {
 				checkJson.put("error", "FORMATO DE JSON NO VÁLIDO.");
 				message.fail(500, String.valueOf(checkJson));
 			}
+		});
+	}
+	
+	
+	
+	
+	public void getSiguienteDosisByPastillero() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisByPastillero");
+		consumer.handler(message -> {
+			JsonObject jsonRes = new JsonObject();
+			JsonObject jsonDatosDosis = new JsonObject();
+			Query<RowSet<Row>> query1 = mySqlClient
+					.query("SELECT COUNT(*) as nPastilleros FROM pastillero_dad.Pastillero ;");
+
+			query1.execute(res -> {
+				if (res.succeeded()) {
+					Row row = res.result().iterator().next();
+					if (row.getInteger("nPastilleros") <= 0) {
+						System.out.println("NO HAY NINGÚN PASTILLERO REGISTRADO.");
+					} else {
+						Query<RowSet<Row>> query2 = mySqlClient.query("SELECT * FROM pastillero_dad.Pastillero ;");
+
+						query2.execute(res2 -> {
+
+							if (res2.succeeded()) {
+								res2.result().forEach(v -> {
+
+									Query<RowSet<Row>> query3 = mySqlClient.query("SELECT dia_semana, hora_inicio "
+											+ "FROM Dosis " + "JOIN pastillero_dad.Usuario ON Usuario.nif = dosis.nif "
+											+ "WHERE id_pastillero = '" + v.getString("id_pastillero") + "' ORDER BY "
+											+ "if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, "
+											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), "
+											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now())) "
+											+ " LIMIT 1;");
+									
+									System.out.println("SELECT dia_semana, hora_inicio "
+											+ "FROM Dosis " + "JOIN pastillero_dad.Usuario ON Usuario.nif = dosis.nif "
+											+ "WHERE id_pastillero = '" + v.getString("id_pastillero") + "' ORDER BY "
+											+ "if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, "
+											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), "
+											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now())) "
+											+ " LIMIT 1;");
+
+									query3.execute(res3 -> {
+										if (res3.succeeded()) {
+											res3.result().forEach(d -> {
+												JsonObject jsonResultDosis = new JsonObject();
+												jsonResultDosis.put(d.getInteger("dia_semana").toString(),
+														d.getString("hora_inicio"));
+												
+												jsonRes.put(v.getString("id_pastillero"), jsonResultDosis);
+												
+												System.out.println("DEL SYSOUT " + jsonRes.toString());
+											});
+										
+										} else {
+											jsonDatosDosis.put("error",
+													"ERROR AL OBTENER LAS SIGUIENTES DOSIS DE CADA PASTILLERO REGISTRADO.");
+											message.fail(500, String.valueOf(jsonDatosDosis));
+										}
+									});
+								});
+								
+							} else {
+								jsonRes.put("error", "ERROR AL OBTENER LOS PASTILLEROS REGISTRADOS.");
+								message.fail(500, String.valueOf(jsonRes));
+							}
+						});
+					}
+				} else {
+					jsonRes.put("error", "ERROR AL CONTABILIZAR LOS PASTILLEROS REGISTRADOS.");
+					message.fail(500, String.valueOf(jsonRes));
+				}
+				
+			});
+			
 		});
 	}
 }

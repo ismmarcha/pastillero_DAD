@@ -13,8 +13,10 @@
 #include <buzzer.h>
 #include <lcd_personal.h>
 
-const char *ssid = "MOVISTAR_072E";
-const char *password = "X8Z3J2Jptc6vAkZYRsan";
+//const char *ssid = "MOVISTAR_072E";
+//const char *password = "X8Z3J2Jptc6vAkZYRsan";
+const char *ssid = "ADAMO-9634";
+const char *password = "D3DUFAFZJTT35S";
 const int portHttp = 8082;
 const int portMqtt = 1883;
 const byte hashLen = 20; /* 256-bit */
@@ -24,7 +26,7 @@ byte mac[macLen];
 byte hashMac[hashLen];
 
 WiFiClient espWifiClient;
-IPAddress server(192, 168, 1, 10);
+IPAddress server(192, 168, 1, 175);
 PubSubClient mqttClient(espWifiClient);
 HttpClient httpClient = HttpClient(espWifiClient, server, portHttp);
 
@@ -134,7 +136,7 @@ void callbackMqtt(char *topic, byte *payload, unsigned int length)
       {
         servo1Write(readServo + 45);
       }
-      delay(1000);
+     // delay(1000);
       Serial.print("Servo1: ");
       Serial.println(servo1Read());
     }
@@ -184,21 +186,21 @@ void setup()
   Serial.begin(9600);
 
   setupWifi();
-  buzzerSetup();
+  //buzzerSetup();
   servoSetup();
   mqttSetup();
-  mpuSetup();
-  setupLCD();
+  //mpuSetup();
+  //setupLCD();
 
-  writeLCD("Hora actual:", 1, 0);
-  writeLCD("Hora dosis: ", 1, 2);
-  checkI2CAddresses();
+  //writeLCD("Hora actual:", 1, 0);
+  //writeLCD("Hora dosis: ", 1, 2);
+  //checkI2CAddresses();
   //testLCD();
   mqttConnect();
   //servoTest();
-  mpuTest();
-  registrarPlaca();
-  delay(2000);
+  //mpuTest();
+  //registrarPlaca();
+  //delay(2000);
 }
 
 void loop()
@@ -207,7 +209,7 @@ void loop()
   if (!mqttClient.connected()) {
     mqttConnect();
   }
-  //testServo();
+  //servoTest();
   //testBuzzer();
   /*time_t now = time(nullptr);
   lcd.setCursor(1, 0);

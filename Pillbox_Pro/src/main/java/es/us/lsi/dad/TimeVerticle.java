@@ -31,7 +31,7 @@ public class TimeVerticle extends AbstractVerticle {
 	public void start(Promise<Void> startFuture) {
 		siguientesDosis = new HashMap<String, String>();
 		siguienteDosisTime = new HashMap<String, LocalTime>();
-		siguientesDosis.put("a8df25211e38f106b2602c3cb5da01c66616160a", "12:00");
+		siguientesDosis.put("8fcfa1390131d77beaa8a2c3b1a76aed1b6965c7" , "10:00");
 
 		for (Map.Entry<String, String> entry : siguientesDosis.entrySet()) {
 			siguienteDosisTime.put(entry.getKey(), LocalTime.parse(entry.getValue()));

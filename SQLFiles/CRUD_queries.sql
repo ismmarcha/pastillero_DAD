@@ -42,11 +42,11 @@ insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",5,"78130288F");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("10:00",6,"78130288F");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("14:00",6,"78130288F");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("18:00",6,"78130288F");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",6,"78130288F");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("10:00",7,"78130288F");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("14:00",7,"78130288F");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("18:00",7,"78130288F");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",7,"78130288F");
+##insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",6,"78130288F");
+insert into Dosis (hora_inicio,dia_semana,nif) values ("10:00",0,"78130288F");
+insert into Dosis (hora_inicio,dia_semana,nif) values ("14:00",0,"78130288F");
+insert into Dosis (hora_inicio,dia_semana,nif) values ("18:00",0,"78130288F");
+insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",0,"78130288F");
 
 insert into Dosis (hora_inicio,dia_semana,nif) values ("10:00",1,"53420191L");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("14:00",1,"53420191L");
@@ -70,12 +70,12 @@ insert into Dosis (hora_inicio,dia_semana,nif) values ("18:00",5,"53420191L");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",5,"53420191L");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("10:00",6,"53420191L");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("14:00",6,"53420191L");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("18:00",6,"53420191L");
+insert into Dosis (hora_inicio,dia_semana,nif) values ("19:00",6,"53420191L");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",6,"53420191L");
-insert into Dosis (hora_inicio,dia_semana,nif,observacion) values ("10:00",7,"53420191L","MUY IMPORTANTE");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("14:00",7,"53420191L");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("18:00",7,"53420191L");
-insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",7,"53420191L");
+insert into Dosis (hora_inicio,dia_semana,nif,observacion) values ("10:00",0,"53420191L","MUY IMPORTANTE");
+insert into Dosis (hora_inicio,dia_semana,nif) values ("14:00",0,"53420191L");
+insert into Dosis (hora_inicio,dia_semana,nif) values ("18:00",0,"53420191L");
+insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",0,"53420191L");
 
 
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","1",0.5);
@@ -148,7 +148,7 @@ insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("4","53",0.5)
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","53",0.5);
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("3","54",0.5);
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","55",0.5);
-insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("5","56",0.5);
+##insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("5","56",0.5);
 
 
 insert into Registro_Dosis (tomada,id_dosis) values (FALSE,"1");
@@ -207,10 +207,19 @@ insert into Registro_Dosis (tomada,id_dosis) values (FALSE,"52");
 insert into Registro_Dosis (tomada,id_dosis) values (FALSE,"53");
 insert into Registro_Dosis (tomada,id_dosis) values (FALSE,"54");
 insert into Registro_Dosis (tomada,id_dosis) values (FALSE,"55");
-insert into Registro_Dosis (tomada,id_dosis) values (FALSE,"56");
+##insert into Registro_Dosis (tomada,id_dosis) values (FALSE,"56");
 
-
+SELECT COUNT(*) as nPastilleros FROM pastillero_dad.Pastillero ;
 select * from Dosis;
 SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = "78130288F";
 
+
+SELECT dia_semana, hora_inicio FROM Dosis JOIN pastillero_dad.Usuario ON Usuario.nif = dosis.nif WHERE id_pastillero = 'w1e2d4f5ffeecnss3fpol247hg7fg1244423435g' ORDER BY if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()))  LIMIT 1;
+
+
+
+SELECT id_pastillero , dia_semana, hora_inicio FROM Dosis JOIN pastillero_dad.Usuario ON Usuario.nif = dosis.nif  ORDER BY if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), 
+INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, TIMEDIFF(addtime(DATE_ADD(CURDATE(),
+ INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), TIMEDIFF(addtime(DATE_ADD(CURDATE(),
+ INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()))  LIMIT 1;
 
