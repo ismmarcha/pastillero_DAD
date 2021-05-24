@@ -55,10 +55,11 @@ public class BDDosis {
 						DosisImpl dosis = new DosisImpl(v);
 						resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
 					});
+					message.reply(resultadoJson);
 				} else {
 					resultadoJson.put("error", "ERROR AL OBTENER TODAS LAS DOSIS" + " ." + String.valueOf(res.cause()));
+					message.fail(500, String.valueOf(resultadoJson));
 				}
-				message.reply(resultadoJson);
 			});
 		});
 	}
@@ -934,10 +935,7 @@ public class BDDosis {
 												jsonResultDosis.put(d.getInteger("dia_semana").toString(),
 														d.getString("hora_inicio"));
 												
-												jsonRes.put(v.getString("id_pastillero"), jsonResultDosis);
-												
-												//System.out.println("DEL SYSOUT " + jsonRes.toString());
-													
+												jsonRes.put(v.getString("id_pastillero"), jsonResultDosis);													
 											});
 											h = h + 1;
 											if ( h == row.getInteger("nPastilleros")) {
@@ -948,8 +946,6 @@ public class BDDosis {
 													"ERROR AL OBTENER LAS SIGUIENTES DOSIS DE CADA PASTILLERO REGISTRADO.");
 											message.fail(500, String.valueOf(jsonDatosDosis));
 										}
-
-	
 									});
 								});							
 							} else {

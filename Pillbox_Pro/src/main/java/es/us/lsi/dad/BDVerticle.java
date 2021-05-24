@@ -1,6 +1,6 @@
 package es.us.lsi.dad;
 
-import java.util.List;
+import java.util.List; 
 
 import com.google.gson.Gson;
 
@@ -29,7 +29,7 @@ public class BDVerticle extends AbstractVerticle {
 	public void start(Promise<Void> startFuture) {
 		gson = new Gson();
 		MySQLConnectOptions connectOptions = new MySQLConnectOptions().setPort(3306).setHost("localhost")
-				.setDatabase("pastillero_dad").setUser("root").setPassword("123456");
+				.setDatabase("pastillero_dad").setUser("root").setPassword("ISmmarcha671");
 
 		PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 

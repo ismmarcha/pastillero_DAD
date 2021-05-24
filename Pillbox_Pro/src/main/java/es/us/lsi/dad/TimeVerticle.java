@@ -69,7 +69,9 @@ public class TimeVerticle extends AbstractVerticle {
 	public void calcularEnvioMensajeDosis() {
 		LocalDateTime now = LocalDateTime.now();
 		ArrayList<String> listToRemove = new ArrayList<String>();
+		
 		for (Map.Entry<String, Object> entry : siguientesDosis.entrySet()) {
+			
 			String hashPlaca = entry.getKey();
 			JsonObject jsonValue = new JsonObject(entry.getValue().toString());
 			Map<String, Object> mapValue = jsonValue.getMap();
@@ -78,17 +80,19 @@ public class TimeVerticle extends AbstractVerticle {
 			LocalTime horaTime = LocalTime.parse(horaStr);
 			LocalDateTime horaDateTime = now.withHour(horaTime.getHour());
 			horaDateTime = horaDateTime.withMinute(horaTime.getMinute());
-			System.out.println("Dia de la semana: " + diaSemana + "->" + horaStr);
 			LocalDateTime fechaNextDosis;
+			
 			if (((now.getDayOfWeek().getValue() - 1) == diaSemana && now.compareTo(horaDateTime) > 0)
 					|| ((now.getDayOfWeek().getValue() - 1) != diaSemana)) {
+				
 				fechaNextDosis = now.with(TemporalAdjusters.next(DayOfWeek.of(diaSemana + 1)));
+				
 			} else {
 				fechaNextDosis = now;
 			}
 			fechaNextDosis = fechaNextDosis.withHour(horaTime.getHour());
 			fechaNextDosis = fechaNextDosis.withMinute(horaTime.getMinute());
-			System.out.println("LocalDateTime Next day: " + fechaNextDosis);
+			
 			if (fechaNextDosis.compareTo(now) <= 0) {
 				mqttClient.publish("placa/" + entry.getKey() + "/move", Buffer.buffer("1"), MqttQoS.AT_LEAST_ONCE,
 						false, false);
