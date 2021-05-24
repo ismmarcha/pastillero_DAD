@@ -29,7 +29,7 @@ public class BDVerticle extends AbstractVerticle {
 	public void start(Promise<Void> startFuture) {
 		gson = new Gson();
 		MySQLConnectOptions connectOptions = new MySQLConnectOptions().setPort(3306).setHost("localhost")
-				.setDatabase("pastillero_dad").setUser("root").setPassword("ISmmarcha671");
+				.setDatabase("pastillero_dad").setUser("root").setPassword("123456");
 
 		PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 

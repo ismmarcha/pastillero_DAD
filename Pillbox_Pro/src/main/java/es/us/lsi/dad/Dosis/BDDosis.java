@@ -31,6 +31,7 @@ public class BDDosis {
 		getDosisPorUsuarioYDia();
 		getSiguienteDosisPorUsuario();
 		getDosisPorUsuarioGroupByDia();
+		getSiguienteDosisByPastillero();
 		deleteDosis();
 		editDosis();
 		addDosis();
@@ -40,16 +41,6 @@ public class BDDosis {
 		deleteRegistroDosis();
 		editRegistroDosis();
 		
-		getSiguienteDosisByPastillero();
-		
-		vertx.eventBus().request("getSiguienteDosisByPastillero", "getSiguienteDosisByPastillero", reply -> {
-			if (reply.succeeded()) {
-				System.out.println(reply.result().body());
-				
-			} else {
-				System.out.println(reply.cause());
-			}
-		});
 
 	}
 
@@ -905,9 +896,9 @@ public class BDDosis {
 	
 	
 	public void getSiguienteDosisByPastillero() {
-		h = 0;
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisByPastillero");
 		consumer.handler(message -> {
+			h = 0;
 			JsonObject jsonRes = new JsonObject();
 			JsonObject jsonDatosDosis = new JsonObject();
 			Query<RowSet<Row>> query1 = mySqlClient

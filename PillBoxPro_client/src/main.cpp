@@ -15,7 +15,7 @@
 
 const char *ssid = "MOVISTAR_072E";
 const char *password = "X8Z3J2Jptc6vAkZYRsan";
-const int portHttp = 8082;
+const int portHttp = 8083;
 const int portMqtt = 1883;
 const byte hashLen = 20; /* 256-bit */
 const byte macLen = 6;
