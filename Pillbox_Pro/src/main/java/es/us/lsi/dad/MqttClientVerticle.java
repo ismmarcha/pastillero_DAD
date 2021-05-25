@@ -16,9 +16,9 @@ public class MqttClientVerticle extends AbstractVerticle {
 	public void start(Promise<Void> startFuture) {
 		MqttClientOptions mqttOptions = new MqttClientOptions();
 		mqttOptions.setUsername("admin1");
-		mqttOptions.setPassword("123456");
+		mqttOptions.setPassword("ISmmarcha671");
 		mqttClient = MqttClient.create(vertx, mqttOptions);
-		mqttClient.connect(1883, "192.168.1.10", res -> {
+		mqttClient.connect(1883, "192.168.1.176", res -> {
 			// mqttClient.disconnect();
 			if (res.succeeded()) {
 				System.out.print("Conectado correctamente al servidor MQTT en el puerto 1883");
@@ -29,8 +29,10 @@ public class MqttClientVerticle extends AbstractVerticle {
 					System.out.println("Content(as string) of the message: " + s.payload().toString());
 					System.out.println("QoS: " + s.qosLevel());
 				}).subscribe("placa/#", 1);
+				
 				mqttClient.publish("placa/a8df25211e38f106b2602c3cb5da01c66616160a/move", Buffer.buffer("1"),
 						MqttQoS.AT_LEAST_ONCE, false, false);
+				
 			} else {
 				System.out.println("ERROR AL INICIAR EL CLIENTE MQTT: " + res.cause());
 			}
