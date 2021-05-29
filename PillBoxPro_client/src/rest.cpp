@@ -1,12 +1,14 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ArduinoHttpClient.h>
+#include <ESP8266HTTPClient.h>
 
 String doGet(HttpClient httpClient, String uri, String bodyData)
 {
-  DynamicJsonDocument body(1024), resGet(1024);
+  DynamicJsonDocument body(2048), resGet(2048);
+  JsonObject resObj = resGet.to<JsonObject>();
   //doc[String("id_pastillero")] = "192R5T";
-  String resData = "";
+  String resData;
   //serializeJson(doc, bodyData);
   Serial.println(bodyData);
   Serial.println("making GET request");
@@ -18,7 +20,6 @@ String doGet(HttpClient httpClient, String uri, String bodyData)
   httpClient.beginBody();
   httpClient.print(bodyData);
   httpClient.endRequest();
-
   // read the status code and body of the response
   int statusCodeGet = httpClient.responseStatusCode();
   String responseGet = httpClient.responseBody();
@@ -26,11 +27,12 @@ String doGet(HttpClient httpClient, String uri, String bodyData)
   Serial.print("GET Status code: ");
   Serial.println(statusCodeGet);
   Serial.print("GET Response: ");
-  Serial.println(responseGet);
-  resGet[String("statusCode")] = statusCodeGet;
-  resGet["response"] = responseGet;
-  JsonArray p = resGet["response"];
-  serializeJson(resGet, resData);
+  //Serial.println(responseGet);
+
+  resObj["statusCode"] = statusCodeGet;
+  resObj["response"] = responseGet;
+  String p = resObj["response"];
+  serializeJson(resObj, resData);
   Serial.print("GET Data: ");
   Serial.println(p);
   return resData;

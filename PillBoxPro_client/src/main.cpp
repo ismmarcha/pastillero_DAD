@@ -4,6 +4,7 @@
 #include <ArduinoHttpClient.h> //HTTP
 #include <ArduinoJson.h>       //JSON
 #include <Time.h>              //TIME INTERNET
+#include <ESP8266HTTPClient.h>
 
 #include <rest.h>
 #include <servo_personal.h>
@@ -29,8 +30,8 @@ WiFiClient espWifiClient;
 IPAddress server(192, 168, 1, 10);
 PubSubClient mqttClient(espWifiClient);
 HttpClient httpClient = HttpClient(espWifiClient, server, portHttp);
-
-JsonArray dosis;
+HTTPClient httpClient2;
+DynamicJsonDocument dosis(4096);
 
 void setupTime()
 {
@@ -113,26 +114,15 @@ void registrarPlaca()
 
 void obtenerCitas()
 {
-  DynamicJsonDocument bodyGetCitas(1024), resGetCitas(1024), responseGetCitas(1024);
+  DynamicJsonDocument bodyGet(2048), resGet(2048), responseGet(2048), dosisPlaca(2048), dosisInd(256);
   String bodyGetData = "";
-  bodyGetCitas[String("id_pastillero")] = placaId;
-  serializeJson(bodyGetCitas, bodyGetData);
+  bodyGet[String("id_pastillero")] = placaId;
+  serializeJson(bodyGet, bodyGetData);
   String resGetData = doGet(httpClient, "/api/dosis/getDosisPorPastillero", bodyGetData);
-  //deserializeJson(resGet, resGetData);
-  //String responseData = resGet["response"];
-  /*String responseData2 = resGet["response"];
-  deserializeJson(responseGet, responseData);
-  JsonArray arrayDosis = responseGet[placaId];
-  dosis = arrayDosis;
-  for (JsonVariant value : arrayDosis)
-  {
-    String xd = value["dia_semana"];
-    Serial.println(xd);
-  }
-  const char *responseChar = "a";*/
-  //Serial.println(resGetData);
-  //Serial.println();
-  //Serial.println(r);
+  deserializeJson(resGet, resGetData);
+  resGetData = resGet["response"].as<String>();
+  deserializeJson(dosisPlaca, resGetData);
+  dosis = dosisPlaca[placaId].as<JsonArray>();
 }
 
 void callbackMqtt(char *topic, byte *payload, unsigned int length)
@@ -290,7 +280,7 @@ void setup()
   Serial.begin(9600);
 
   setupWifi();
-  /*buzzerSetup();
+  buzzerSetup();
   servoSetup();
   checkI2CAddresses();
   mqttSetup();
@@ -299,10 +289,8 @@ void setup()
 
   writeLCD("Hora actual:", 1, 0);
   writeLCD("Hora dosis: ", 1, 2);
-  //testLCD();
   mqttConnect();
-  //servoTest();
-  mpuTest();*/
+  mpuTest();
   registrarPlaca();
   obtenerCitas();
   delay(2000);
@@ -311,7 +299,7 @@ void setup()
 void loop()
 {
   // put your main code here, to run repeatedly:
-  /*if (!mqttClient.connected())
+  if (!mqttClient.connected())
   {
     mqttConnect();
   }
@@ -319,5 +307,5 @@ void loop()
 
   comprBuzzer();
 
-  mqttClient.loop();*/
+  mqttClient.loop();
 }
