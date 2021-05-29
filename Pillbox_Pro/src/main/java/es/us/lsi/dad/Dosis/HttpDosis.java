@@ -22,6 +22,7 @@ public class HttpDosis {
 		router.get("/api/dosis/getDosisPorUsuarioYDia").handler(this::getDosisPorUsuarioYDia);
 		router.get("/api/dosis/getDosisPorUsuarioGroupByDia").handler(this::getDosisPorUsuarioGroupByDia);
 		router.get("/api/dosis/getSiguienteDosisPorUsuario").handler(this::getSiguienteDosisPorUsuario);
+		router.get("/api/dosis/getDosisPorPastillero").handler(this::getDosisPorPastillero);
 		router.post("/api/dosis/addDosis").handler(this::addDosis);
 		router.put("/api/dosis/editDosis").handler(this::editDosis);
 		router.delete("/api/dosis").handler(this::deleteDosis);
@@ -141,6 +142,20 @@ public class HttpDosis {
 		});
 	}
 
+	public void getDosisPorPastillero(RoutingContext routingContext) {
+		vertx.eventBus().request("getDosisPorPastillero", routingContext.getBodyAsString(), reply -> {
+			if (reply.succeeded()) {
+				System.out.println(reply.result().body());
+				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.result().body()));
+			} else {
+				routingContext.response().setStatusCode(500).putHeader("content-type", "application/json")
+						.end(String.valueOf(reply.cause().getMessage()));
+			}
+		});
+	}
+
+	
 	public void deleteDosis(RoutingContext routingContext) {
 		// Obtenemos el id del usuario contenido en la propia URL de la petición
 		String datosDosis = routingContext.getBodyAsString();
@@ -241,4 +256,6 @@ public class HttpDosis {
 			}
 		});
 	}
+	
+	
 }

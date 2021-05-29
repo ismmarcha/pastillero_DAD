@@ -2,8 +2,9 @@
 #include <ArduinoJson.h>
 #include <ArduinoHttpClient.h>
 
-String doGet(HttpClient httpClient, String uri, String bodyData){
-  DynamicJsonDocument body(1024), res(1024);
+String doGet(HttpClient httpClient, String uri, String bodyData)
+{
+  DynamicJsonDocument body(1024), resGet(1024);
   //doc[String("id_pastillero")] = "192R5T";
   String resData = "";
   //serializeJson(doc, bodyData);
@@ -19,21 +20,25 @@ String doGet(HttpClient httpClient, String uri, String bodyData){
   httpClient.endRequest();
 
   // read the status code and body of the response
-  int statusCode = httpClient.responseStatusCode();
-  String response = httpClient.responseBody();
+  int statusCodeGet = httpClient.responseStatusCode();
+  String responseGet = httpClient.responseBody();
 
   Serial.print("GET Status code: ");
-  Serial.println(statusCode);
+  Serial.println(statusCodeGet);
   Serial.print("GET Response: ");
-  Serial.println(response);
-    res[String("statusCode")] = statusCode;
-    res[String("response")] = response;
-    serializeJson(res, resData);
-    return resData;
+  Serial.println(responseGet);
+  resGet[String("statusCode")] = statusCodeGet;
+  resGet["response"] = responseGet;
+  JsonArray p = resGet["response"];
+  serializeJson(resGet, resData);
+  Serial.print("GET Data: ");
+  Serial.println(p);
+  return resData;
 }
 
-String doPost(HttpClient httpClient, String uri, String bodyData){
-  DynamicJsonDocument body(1024), res(1024);
+String doPost(HttpClient httpClient, String uri, String bodyData)
+{
+  DynamicJsonDocument bodyPost(1024), resPost(1024);
   String resData = "";
   Serial.println(bodyData);
   Serial.println("making POST request");
@@ -47,20 +52,21 @@ String doPost(HttpClient httpClient, String uri, String bodyData){
   httpClient.endRequest();
 
   // read the status code and body of the response
-  int statusCode = httpClient.responseStatusCode();
-  String response = httpClient.responseBody();
+  int statusCodePost = httpClient.responseStatusCode();
+  String responsePost = httpClient.responseBody();
 
   Serial.print("POST Status code: ");
-  Serial.println(statusCode);
+  Serial.println(statusCodePost);
   Serial.print("POST Response: ");
-  Serial.println(response);
-    res[String("statusCode")] = statusCode;
-    res[String("response")] = response;
-    serializeJson(res, resData);
-    return resData;
+  Serial.println(responsePost);
+  resPost[String("statusCode")] = statusCodePost;
+  resPost[String("response")] = responsePost;
+  serializeJson(resPost, resData);
+  return resData;
 }
 
-String doPut(HttpClient httpClient, String uri, String bodyData){
+String doPut(HttpClient httpClient, String uri, String bodyData)
+{
   DynamicJsonDocument body(1024), res(1024);
   String resData = "";
   Serial.println(bodyData);
@@ -75,20 +81,21 @@ String doPut(HttpClient httpClient, String uri, String bodyData){
   httpClient.endRequest();
 
   // read the status code and body of the response
-  int statusCode = httpClient.responseStatusCode();
-  String response = httpClient.responseBody();
+  int statusCodePut = httpClient.responseStatusCode();
+  String responsePut = httpClient.responseBody();
 
   Serial.print("PUT Status code: ");
-  Serial.println(statusCode);
+  Serial.println(statusCodePut);
   Serial.print("PUT Response: ");
-  Serial.println(response);
-    res[String("statusCode")] = statusCode;
-    res[String("response")] = response;
-    serializeJson(res, resData);
-    return resData;
+  Serial.println(responsePut);
+  res[String("statusCode")] = statusCodePut;
+  res[String("response")] = responsePut;
+  serializeJson(res, resData);
+  return resData;
 }
 
-String doDelete(HttpClient httpClient, String uri, String bodyData){
+String doDelete(HttpClient httpClient, String uri, String bodyData)
+{
   DynamicJsonDocument body(1024), res(1024);
   String resData = "";
   Serial.println(bodyData);
@@ -110,12 +117,11 @@ String doDelete(HttpClient httpClient, String uri, String bodyData){
   Serial.println(statusCode);
   Serial.print("DELETE Response: ");
   Serial.println(response);
-    res[String("statusCode")] = statusCode;
-    res[String("response")] = response;
-    serializeJson(res, resData);
-    return resData;
+  res[String("statusCode")] = statusCode;
+  res[String("response")] = response;
+  serializeJson(res, resData);
+  return resData;
 }
-
 
 /*
 void restTest()

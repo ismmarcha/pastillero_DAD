@@ -1,5 +1,6 @@
 package es.us.lsi.dad.Dosis;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -32,6 +33,7 @@ public class BDDosis {
 		getSiguienteDosisPorUsuario();
 		getDosisPorUsuarioGroupByDia();
 		getSiguienteDosisByPastillero();
+		getDosisPorPastillero();
 		deleteDosis();
 		editDosis();
 		addDosis();
@@ -964,6 +966,71 @@ public class BDDosis {
 				}	
 			});
 	
+		});
+	}
+	
+	// EJEMPLO BODY: { "id_pastillero":"asdast34356asgasgasg" }
+	public void getDosisPorPastillero() {
+		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosisPorPastillero");
+		consumer.handler(message -> {
+			String datosUsuario = message.body();
+			if (utils.checkJson(datosUsuario) == true) {
+				JsonObject jsonUsuario = new JsonObject(datosUsuario);
+				JsonObject jsonComp = new JsonObject();
+
+				boolean comprobacion = jsonUsuario.containsKey("id_pastillero") && jsonUsuario != null;
+				if (comprobacion) {
+					String id_pastillero = jsonUsuario.getString("id_pastillero");
+
+					Query<RowSet<Row>> query1 = mySqlClient
+							.query("SELECT COUNT(*) as nPastillero FROM pastillero_dad.Pastillero WHERE id_pastillero = '" + id_pastillero + "';");
+					query1.execute(res -> {
+						JsonObject json = new JsonObject();
+						if (res.succeeded()) {
+
+							Row row = res.result().iterator().next();
+							if (row.getInteger("nPastillero") <= 0) {
+								json.put("error", "PASTILLERO NO ENCONTRADO");
+								message.fail(500, String.valueOf(json));
+							} else {
+
+								Query<RowSet<Row>> query = mySqlClient
+										.query("select id_pastillero, dia_semana, hora_inicio from Usuario INNER JOIN Dosis ON Usuario.nif = Dosis.nif WHERE Usuario.id_pastillero ='"+id_pastillero+"';");
+								query.execute(res2 -> {
+									JsonObject resultadoJson = new JsonObject();
+									if (res2.succeeded()) {
+										ArrayList<JsonObject> dosisList = new ArrayList<JsonObject>();
+										res2.result().forEach(v -> {
+											JsonObject dosis = new JsonObject();
+											dosis.put(String.valueOf("dia_semana"), v.getInteger("dia_semana"));
+											dosis.put(String.valueOf("hora_inicio"), v.getString("hora_inicio"));
+											dosisList.add(dosis);
+										});
+										resultadoJson.put(id_pastillero, dosisList);
+										message.reply(resultadoJson);
+									} else {
+										resultadoJson.put("error", "ERROR AL OBTENER LAS DOSIS DEL PASTILLERO CON ID: "
+												+ id_pastillero + " ." + String.valueOf(res2.cause()));
+										message.fail(500, String.valueOf(resultadoJson));
+									}
+								});
+							}
+						} else {
+							json.put("error", "ERROR AL OBTENER LAS DOSIS DEL PASTILLERO CON ID: " + id_pastillero + " . "
+									+ String.valueOf(res.cause()));
+							message.fail(500, String.valueOf(json));
+						}
+					});
+				} else {
+					jsonComp.put("error",
+							"NO SE HAN INTRODUCIDO LOS CAMPOS CORRESPONDIENTES EN EL CUERPO DE LA PETICIÓN.");
+					message.fail(500, String.valueOf(jsonComp));
+				}
+			} else {
+				JsonObject checkJson = new JsonObject();
+				checkJson.put("error", "FORMATO DE JSON NO VÁLIDO.");
+				message.fail(500, String.valueOf(checkJson));
+			}
 		});
 	}
 }

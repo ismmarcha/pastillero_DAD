@@ -46,10 +46,11 @@ public class BDUsuario {
 						UsuarioImpl usuario = new UsuarioImpl(v);
 						json.put(String.valueOf(usuario.getNif()), usuario.getJson());
 					});
+					message.reply(json);
 				} else {
 					json.put("error", "ERROR AL OBTENER TODOS LOS USUARIOS: " + " ." + String.valueOf(res.cause()));
+					message.fail(500, String.valueOf(res.cause()));
 				}
-				message.reply(json);
 			});
 		});
 	}

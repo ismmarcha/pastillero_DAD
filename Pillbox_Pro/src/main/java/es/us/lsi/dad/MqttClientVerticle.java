@@ -22,8 +22,8 @@ public class MqttClientVerticle extends AbstractVerticle {
 			// mqttClient.disconnect();
 			if (res.succeeded()) {
 				System.out.print("Conectado correctamente al servidor MQTT en el puerto 1883");
-				DeploymentOptions options = new DeploymentOptions().setWorker(true);
-				vertx.deployVerticle(new TimeVerticle(mqttClient), options);
+				//DeploymentOptions options = new DeploymentOptions().setWorker(true);
+				//vertx.deployVerticle(new TimeVerticle(mqttClient), options);
 				mqttClient.publishHandler(s -> {
 					System.out.println("There are new message in topic: " + s.topicName());
 					System.out.println("Content(as string) of the message: " + s.payload().toString());

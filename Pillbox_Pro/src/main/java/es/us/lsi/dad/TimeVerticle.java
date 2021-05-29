@@ -50,7 +50,7 @@ public class TimeVerticle extends AbstractVerticle {
 			public void run() {
 				obtenerSiguientesDosis();
 			}
-		}, Date.from(Instant.now()), Duration.ofSeconds(30).toMillis());
+		}, Date.from(Instant.now()), Duration.ofSeconds(5).toMillis());
 	}
 
 	public void obtenerSiguientesDosis() {

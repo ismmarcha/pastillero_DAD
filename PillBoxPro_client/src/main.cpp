@@ -23,10 +23,14 @@ String placaId = "";
 byte mac[macLen];
 byte hashMac[hashLen];
 
+long tiempoBuzzer = 0;
+bool banderaBuzzer = false;
 WiFiClient espWifiClient;
 IPAddress server(192, 168, 1, 10);
 PubSubClient mqttClient(espWifiClient);
 HttpClient httpClient = HttpClient(espWifiClient, server, portHttp);
+
+JsonArray dosis;
 
 void setupTime()
 {
@@ -107,6 +111,30 @@ void registrarPlaca()
   }
 }
 
+void obtenerCitas()
+{
+  DynamicJsonDocument bodyGetCitas(1024), resGetCitas(1024), responseGetCitas(1024);
+  String bodyGetData = "";
+  bodyGetCitas[String("id_pastillero")] = placaId;
+  serializeJson(bodyGetCitas, bodyGetData);
+  String resGetData = doGet(httpClient, "/api/dosis/getDosisPorPastillero", bodyGetData);
+  //deserializeJson(resGet, resGetData);
+  //String responseData = resGet["response"];
+  /*String responseData2 = resGet["response"];
+  deserializeJson(responseGet, responseData);
+  JsonArray arrayDosis = responseGet[placaId];
+  dosis = arrayDosis;
+  for (JsonVariant value : arrayDosis)
+  {
+    String xd = value["dia_semana"];
+    Serial.println(xd);
+  }
+  const char *responseChar = "a";*/
+  //Serial.println(resGetData);
+  //Serial.println();
+  //Serial.println(r);
+}
+
 void callbackMqtt(char *topic, byte *payload, unsigned int length)
 {
   Serial.print("Message arrived [");
@@ -137,6 +165,9 @@ void callbackMqtt(char *topic, byte *payload, unsigned int length)
       }
       Serial.print("Servo1: ");
       Serial.println(servo1Read());
+      banderaBuzzer = true;
+      tiempoBuzzer = millis();
+      buzzerOn();
     }
   }
   if (topicStr.equals(rutaNextDosis))
@@ -149,7 +180,7 @@ void callbackMqtt(char *topic, byte *payload, unsigned int length)
     deserializeJson(jsonNextDosis, res);
     String dia = jsonNextDosis[String("dia")];
     String hora = jsonNextDosis[String("hora")];
-    writeLCD(dia+"->"+hora, 1,3);
+    writeLCD(dia + "->" + hora, 1, 3);
   }
   Serial.println();
 }
@@ -190,29 +221,6 @@ void mqttConnect()
   }
 }
 
-void setup()
-{
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-
-  setupWifi();
-  buzzerSetup();
-  servoSetup();
-  checkI2CAddresses();
-  mqttSetup();
-  mpuSetup();
-  setupLCD();
-
-  writeLCD("Hora actual:", 1, 0);
-  writeLCD("Hora dosis: ", 1, 2);
-  //testLCD();
-  mqttConnect();
-  //servoTest();
-  mpuTest();
-  registrarPlaca();
-  delay(2000);
-}
-
 void mostrarHora()
 {
   time_t now = time(nullptr);
@@ -251,23 +259,65 @@ void mostrarHora()
   }
   writeLCD(horaStr + ":" + minutoStr + ":" + segundoStr, 1, 1);
 }
+
+void comprBuzzer()
+{
+  if (banderaBuzzer == true)
+  {
+    long tiempoPasado = millis() - tiempoBuzzer;
+    if (tiempoPasado >= 10000)
+    {
+      banderaBuzzer = false;
+      buzzerOff();
+    }
+    else
+    {
+      if ((tiempoPasado / 1000) % 2 == 0)
+      {
+        buzzerOn();
+      }
+      else
+      {
+        buzzerOff();
+      }
+    }
+  }
+}
+
+void setup()
+{
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+
+  setupWifi();
+  /*buzzerSetup();
+  servoSetup();
+  checkI2CAddresses();
+  mqttSetup();
+  mpuSetup();
+  setupLCD();
+
+  writeLCD("Hora actual:", 1, 0);
+  writeLCD("Hora dosis: ", 1, 2);
+  //testLCD();
+  mqttConnect();
+  //servoTest();
+  mpuTest();*/
+  registrarPlaca();
+  obtenerCitas();
+  delay(2000);
+}
+
 void loop()
 {
   // put your main code here, to run repeatedly:
-  if (!mqttClient.connected())
+  /*if (!mqttClient.connected())
   {
     mqttConnect();
   }
-  //testServo();
-  //testBuzzer();
   mostrarHora();
-  //Serial.println(hora);
-  //lcd.print(hour(now)+":"+minute(now)+":"+second(now));
 
-  /* Get new sensor events with the readings */
+  comprBuzzer();
 
-  //testGyro();
-  //delay(1000);
-  //loopMqtt();
-  mqttClient.loop();
+  mqttClient.loop();*/
 }

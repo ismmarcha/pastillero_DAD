@@ -13,3 +13,11 @@ void buzzerTest()
   digitalWrite(14, LOW);
   delay(1000);
 }
+
+void buzzerOn(){
+  digitalWrite(14, HIGH);
+}
+
+void buzzerOff(){
+  digitalWrite(14, LOW);
+}
