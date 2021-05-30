@@ -29,8 +29,8 @@ public class MqttClientVerticle extends AbstractVerticle {
 					System.out.println("Content(as string) of the message: " + s.payload().toString());
 					System.out.println("QoS: " + s.qosLevel());
 				}).subscribe("placa/#", 1);
-				mqttClient.publish("placa/a8df25211e38f106b2602c3cb5da01c66616160a/move", Buffer.buffer("1"),
-						MqttQoS.AT_LEAST_ONCE, false, false);
+				/*mqttClient.publish("placa/a8df25211e38f106b2602c3cb5da01c66616160a/move", Buffer.buffer("1"),
+						MqttQoS.AT_LEAST_ONCE, false, false);*/
 			} else {
 				System.out.println("ERROR AL INICIAR EL CLIENTE MQTT: " + res.cause());
 			}

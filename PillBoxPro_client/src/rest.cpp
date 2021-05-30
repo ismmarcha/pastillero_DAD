@@ -26,15 +26,15 @@ String doGet(HttpClient httpClient, String uri, String bodyData)
 
   Serial.print("GET Status code: ");
   Serial.println(statusCodeGet);
-  Serial.print("GET Response: ");
+  //Serial.print("GET Response: ");
   //Serial.println(responseGet);
 
   resObj["statusCode"] = statusCodeGet;
   resObj["response"] = responseGet;
   String p = resObj["response"];
   serializeJson(resObj, resData);
-  Serial.print("GET Data: ");
-  Serial.println(p);
+  //Serial.print("GET Data: ");
+  //Serial.println(p);
   return resData;
 }
 

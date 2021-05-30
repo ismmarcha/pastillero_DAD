@@ -3,13 +3,13 @@
 Servo servo1;
 Servo servo2;
 
-void servoSetup()
+void servoSetup(int giroInicial1, int giroInicial2)
 {
   servo1.attach(2); //Pin D4
-  servo1.write(0);
+  servo1.write(giroInicial1);
 
   servo2.attach(3); //DEBO COMPROBARLO
-  servo2.write(0);
+  servo2.write(giroInicial2);
 }
 
 void servoTest()

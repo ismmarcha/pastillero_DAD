@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-void servoSetup();
+void servoSetup(int giroInicial1, int giroInicial2);
 
 void servoTest();
 
