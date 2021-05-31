@@ -108,3 +108,24 @@ void mpuTest()
 
     Serial.println("");
 }
+
+sensors_event_t mpuTemperatura()
+{
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
+    return temp;
+}
+
+sensors_event_t mpuGyro()
+{
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
+    return g;
+}
+
+sensors_event_t mpuAccel()
+{
+    sensors_event_t a, g, temp;
+    mpu.getEvent(&a, &g, &temp);
+    return a;
+}

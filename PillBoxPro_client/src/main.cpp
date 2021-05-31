@@ -325,7 +325,8 @@ void comprobarSiguienteDosis()
   siguienteDosis["dia_semana"] = dia_semana_dosis;
   siguienteDosis["hora_inicio"] = hora_inicio_dosis;
   siguienteDosis["segundosFecha"] = fecha_dosis;
-  writeLCD(String(dia_semana_dosis) + "->" + hora_inicio_dosis, 1, 3);
+  clearLCDLine(1);
+  writeLCD(intToStringDiaSemana(dia_semana_dosis) + "->" + hora_inicio_dosis, 1, 3);
 }
 
 void comprobarSiTocaDosis()
@@ -355,6 +356,11 @@ void comprobarSiTocaDosis()
   }
 }
 
+void mostrarTemperatura(){
+  sensors_event_t temp;
+  temp = mpuTemperatura();
+  writeLCD(String(temp.temperature), 0, 15);
+}
 void setup()
 {
   // put your setup code here, to run once:
@@ -394,8 +400,11 @@ void loop()
   mqttClient.loop();
 
   mostrarHora();
+  
+  mostrarTemperatura();
 
   comprBuzzer();
 
   comprobarSiTocaDosis();
+
 }
