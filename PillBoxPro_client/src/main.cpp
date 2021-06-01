@@ -359,7 +359,7 @@ void comprobarSiTocaDosis()
 void mostrarTemperatura(){
   sensors_event_t temp;
   temp = mpuTemperatura();
-  writeLCD(String(temp.temperature), 0, 15);
+  writeLCD(String(temp.temperature / 10), 13, 0);
 }
 void setup()
 {
