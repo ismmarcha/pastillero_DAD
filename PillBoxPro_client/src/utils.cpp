@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-
 void checkI2CAddresses()
 {
     while (!Serial)
@@ -32,4 +31,38 @@ void checkI2CAddresses()
     Serial.print("Found ");
     Serial.print(count, HEX);
     Serial.println(" Device(s).");
+}
+
+String intToStringDiaSemana(int dw)
+{
+    String dws = "";
+    switch (dw)
+    {
+    case 0:
+        dws = "Domingo";
+        break;
+    case 1:
+        dws = "Lunes";
+        break;
+    case 2:
+        dws = "Martes";
+        break;
+    case 3:
+        dws = "Miércoles";
+        break;
+    case 4:
+        dws = "Jueves";
+        break;
+    case 5:
+        dws = "Viernes";
+        break;
+    case 6:
+        dws = "Sábado";
+        break;
+
+    default:
+        dws = "NaN";
+        break;
+    }
+    return dws;
 }
