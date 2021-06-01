@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import es.us.lsi.dad.Pastillero.PastilleroImpl;
+import es.us.lsi.dad.Usuario.UsuarioImpl;
 import es.us.lsi.dad.Utils.Utils;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
@@ -19,6 +21,7 @@ public class BDDosis {
 	MySQLPool mySqlClient;
 
 	Utils utils = new Utils();
+	es.us.lsi.dad.MqttClientVerticle MqttClientVerticle = new es.us.lsi.dad.MqttClientVerticle();
 
 	public BDDosis(Vertx vertx, MySQLPool mySqlClient) {
 		this.vertx = vertx;
@@ -42,7 +45,6 @@ public class BDDosis {
 		addRegistroDosis();
 		deleteRegistroDosis();
 		editRegistroDosis();
-		
 
 	}
 
@@ -64,8 +66,38 @@ public class BDDosis {
 			});
 		});
 	}
+	
+	public void cambiosTablaDosis(String nif) {
+		
+		Query<RowSet<Row>> query = mySqlClient.query("SELECT id_pastillero FROM pastillero_dad.Usuario WHERE nif = '"
+				+ nif.toString() + "';");
+		
+		query.execute(res1 -> {
+			
+			if (res1.succeeded()) {
+				
+				String id_pastillero = res1.result().iterator().next().getString("id_pastillero");
+				
+				vertx.eventBus().request("enviaActuDosis", id_pastillero , reply -> {
+					if (reply.succeeded()) {
+						
+						System.out.println("ENVÍO DE ACTUALIZACIÓN CORRECTO");
+					}else {
+						System.out.println(reply.cause());
+						System.out.println("ENVÍO DE ACTUALIZACIÓN INCORRECTO");
+					}
+				});		
+			} else {
+				System.out.println("ERROR AL OBTENER TODAS LAS DOSIS"+ res1.cause());
+			}
+		});
 
-	// EJEMPLO BODY: { "nif": "78130288F", "hora_inicio": "10:00" , "dia_semana": 1 }
+		
+
+
+	}
+
+// EJEMPLO BODY: { "nif": "78130288F", "hora_inicio": "10:00" , "dia_semana": 1 }
 	public void getDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosis");
 		consumer.handler(message -> {
@@ -129,8 +161,8 @@ public class BDDosis {
 				if (comprobacion) {
 					String nif = jsonUsuario.getString("nif");
 
-					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
+					Query<RowSet<Row>> query1 = mySqlClient.query(
+							"SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
 						if (res.succeeded()) {
@@ -146,7 +178,7 @@ public class BDDosis {
 								query.execute(res2 -> {
 									JsonObject resultadoJson = new JsonObject();
 									if (res2.succeeded()) {
-										
+
 										res2.result().forEach(v -> {
 											DosisImpl dosis = new DosisImpl(v);
 											resultadoJson.put(String.valueOf(dosis.getId_dosis()), dosis.getJson());
@@ -197,8 +229,8 @@ public class BDDosis {
 					String nif = jsonUsuario.getString("nif");
 					int dia_semana = jsonUsuario.getInteger("dia_semana");
 
-					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
+					Query<RowSet<Row>> query1 = mySqlClient.query(
+							"SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
@@ -261,8 +293,8 @@ public class BDDosis {
 				if (comprobacion) {
 					String nif = jsonUsuario.getString("nif");
 
-					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
+					Query<RowSet<Row>> query1 = mySqlClient.query(
+							"SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
@@ -323,8 +355,8 @@ public class BDDosis {
 				if (comprobacion) {
 
 					String nif = jsonUsuario.getString("nif");
-					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
+					Query<RowSet<Row>> query1 = mySqlClient.query(
+							"SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
@@ -415,6 +447,7 @@ public class BDDosis {
 								query2.execute(res2 -> {
 									JsonObject resultadoJson = new JsonObject();
 									if (res2.succeeded()) {
+										cambiosTablaDosis(jsonDosis.getString("nif"));
 										resultadoJson.put(nif,
 												"BORRADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: "
 														+ hora_inicio + " Y DIA DE LA SEMANA:  " + dia_semana);
@@ -446,7 +479,8 @@ public class BDDosis {
 		});
 	}
 
-	// EJEMPLO BODY: {"nif": "78130288F" , "dia_semana": 1, "hora_inicio": "12:30" ,"observacion": "SUPER IMPORTANTE"}
+	// EJEMPLO BODY: {"nif": "78130288F" , "dia_semana": 1, "hora_inicio": "12:30"
+	// ,"observacion": "SUPER IMPORTANTE"}
 	public void addDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("addDosis");
 		consumer.handler(message -> {
@@ -474,6 +508,8 @@ public class BDDosis {
 					query.execute(res -> {
 						JsonObject resultadoJson = new JsonObject();
 						if (res.succeeded()) {
+
+							cambiosTablaDosis(jsonDosis.getString("nif"));
 
 							resultadoJson.put(jsonDosis.getString("nif"),
 									"AÑADIDA LA DOSIS DEL USUARIO CON NIF:  " + jsonDosis.getString("nif")
@@ -504,7 +540,8 @@ public class BDDosis {
 		});
 	}
 
-	// EJEMPLO BODY : {"nif": "78130288F" , "dia_semana": 2, "hora_inicio": "22:00" , "observacion": "No se pueden olvidar."}
+	// EJEMPLO BODY : {"nif": "78130288F" , "dia_semana": 2, "hora_inicio": "22:00"
+	// , "observacion": "No se pueden olvidar."}
 	public void editDosis() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("editDosis");
 		consumer.handler(message -> {
@@ -556,6 +593,8 @@ public class BDDosis {
 								query.execute(res2 -> {
 									JsonObject resultadoJson = new JsonObject();
 									if (res2.succeeded()) {
+										
+										cambiosTablaDosis(nif);
 
 										resultadoJson.put(nif,
 												"EDITADA LA DOSIS DEL USUARIO CON NIF:  " + nif + " HORA DE INICIO: "
@@ -606,8 +645,8 @@ public class BDDosis {
 
 					String nif = jsonUsuario.getString("nif");
 
-					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
+					Query<RowSet<Row>> query1 = mySqlClient.query(
+							"SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = '" + nif + "';");
 
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
@@ -893,10 +932,7 @@ public class BDDosis {
 			}
 		});
 	}
-	
-	
-	
-	
+
 	public void getSiguienteDosisByPastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getSiguienteDosisByPastillero");
 		consumer.handler(message -> {
@@ -926,34 +962,33 @@ public class BDDosis {
 											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), "
 											+ "TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now())) "
 											+ " LIMIT 1;");
-									
+
 									query3.execute(res3 -> {
 										if (res3.succeeded()) {
-											
+
 											res3.result().forEach(d -> {
-												
+
 												JsonObject jsonResultDosis = new JsonObject();
 												jsonResultDosis.put(d.getInteger("dia_semana").toString(),
 														d.getString("hora_inicio"));
-												
+
 												jsonRes.put(v.getString("id_pastillero"), jsonResultDosis);
-												
-												//System.out.println("DEL SYSOUT " + jsonRes.toString());
-													
+
+												// System.out.println("DEL SYSOUT " + jsonRes.toString());
+
 											});
 											h = h + 1;
-											if ( h == row.getInteger("nPastilleros")) {
-												 message.reply(jsonRes);
-												}
+											if (h == row.getInteger("nPastilleros")) {
+												message.reply(jsonRes);
+											}
 										} else {
 											jsonDatosDosis.put("error",
 													"ERROR AL OBTENER LAS SIGUIENTES DOSIS DE CADA PASTILLERO REGISTRADO.");
 											message.fail(500, String.valueOf(jsonDatosDosis));
 										}
 
-	
 									});
-								});							
+								});
 							} else {
 								jsonRes.put("error", "ERROR AL OBTENER LOS PASTILLEROS REGISTRADOS.");
 								message.fail(500, String.valueOf(jsonRes));
@@ -963,12 +998,12 @@ public class BDDosis {
 				} else {
 					jsonRes.put("error", "ERROR AL CONTABILIZAR LOS PASTILLEROS REGISTRADOS.");
 					message.fail(500, String.valueOf(jsonRes));
-				}	
+				}
 			});
-	
+
 		});
 	}
-	
+
 	// EJEMPLO BODY: { "id_pastillero":"asdast34356asgasgasg" }
 	public void getDosisPorPastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosisPorPastillero");
@@ -982,8 +1017,9 @@ public class BDDosis {
 				if (comprobacion) {
 					String id_pastillero = jsonUsuario.getString("id_pastillero");
 
-					Query<RowSet<Row>> query1 = mySqlClient
-							.query("SELECT COUNT(*) as nPastillero FROM pastillero_dad.Pastillero WHERE id_pastillero = '" + id_pastillero + "';");
+					Query<RowSet<Row>> query1 = mySqlClient.query(
+							"SELECT COUNT(*) as nPastillero FROM pastillero_dad.Pastillero WHERE id_pastillero = '"
+									+ id_pastillero + "';");
 					query1.execute(res -> {
 						JsonObject json = new JsonObject();
 						if (res.succeeded()) {
@@ -994,8 +1030,9 @@ public class BDDosis {
 								message.fail(500, String.valueOf(json));
 							} else {
 
-								Query<RowSet<Row>> query = mySqlClient
-										.query("select id_pastillero, dia_semana, hora_inicio from Usuario INNER JOIN Dosis ON Usuario.nif = Dosis.nif WHERE Usuario.id_pastillero ='"+id_pastillero+"';");
+								Query<RowSet<Row>> query = mySqlClient.query(
+										"select id_pastillero, dia_semana, hora_inicio from Usuario INNER JOIN Dosis ON Usuario.nif = Dosis.nif WHERE Usuario.id_pastillero ='"
+												+ id_pastillero + "';");
 								query.execute(res2 -> {
 									JsonObject resultadoJson = new JsonObject();
 									if (res2.succeeded()) {
@@ -1016,8 +1053,8 @@ public class BDDosis {
 								});
 							}
 						} else {
-							json.put("error", "ERROR AL OBTENER LAS DOSIS DEL PASTILLERO CON ID: " + id_pastillero + " . "
-									+ String.valueOf(res.cause()));
+							json.put("error", "ERROR AL OBTENER LAS DOSIS DEL PASTILLERO CON ID: " + id_pastillero
+									+ " . " + String.valueOf(res.cause()));
 							message.fail(500, String.valueOf(json));
 						}
 					});

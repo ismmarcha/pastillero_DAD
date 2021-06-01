@@ -1,6 +1,6 @@
 package es.us.lsi.dad.Dosis;
 
-import io.vertx.core.Vertx;
+import io.vertx.core.Vertx; 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -176,6 +176,7 @@ public class HttpDosis {
 		String datosDosis = routingContext.getBodyAsString();
 		vertx.eventBus().request("addDosis", datosDosis, reply -> {
 			if (reply.succeeded()) {
+				
 				routingContext.response().setStatusCode(200).putHeader("content-type", "application/json")
 						.end(String.valueOf(reply.result().body()));
 			} else {

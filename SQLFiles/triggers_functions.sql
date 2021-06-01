@@ -61,7 +61,7 @@ BEGIN
     
 	#signal sqlstate '45000' set message_text = rolCuidador;
     
-    if(rolCuidador = 'cuidador' AND rolIn = 'enfermo')
+    if((rolCuidador = 'cuidador' AND rolIn = 'enfermo') OR (rolIn = 'cuidador'))
     THEN
 		SET cuidador = true;
     ELSE 
@@ -119,3 +119,39 @@ BEGIN
   END IF;
 END//
 DELIMITER ;
+
+
+##TRIGGER PARA DÍA DE LA SEMANA
+DROP FUNCTION IF EXISTS dia_semanaValido;
+
+DELIMITER //
+CREATE FUNCTION dia_semanaValido (dia_semana INT)
+	RETURNS bool
+    READS SQL DATA
+	DETERMINISTIC
+BEGIN
+    DECLARE valido bool;
+	SET valido = false;
+    if(dia_semana >= 0 AND dia_semana <= 6)
+    THEN
+		SET valido = true;
+    END IF;
+        
+    RETURN valido;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS triggerdia_semanaValido;
+
+DELIMITER //
+CREATE TRIGGER triggerdia_semanaValido
+BEFORE INSERT ON Dosis
+FOR EACH ROW
+BEGIN
+  IF dia_semanaValido(NEW.dia_semana) = 0
+    THEN
+      signal sqlstate '45000' set message_text = "Formato de día de la semana inválido";
+  END IF;
+END//
+DELIMITER ;
+
