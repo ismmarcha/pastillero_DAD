@@ -1,5 +1,5 @@
 use pastillero_dad;
-
+##ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'ISmmarcha671';
 DROP TABLE IF EXISTS Registro_Dosis;
 DROP TABLE IF EXISTS Pastilla_Dosis;
 DROP TABLE IF EXISTS Dosis;
