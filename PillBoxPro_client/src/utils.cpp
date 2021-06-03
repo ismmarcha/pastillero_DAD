@@ -48,7 +48,7 @@ String intToStringDiaSemana(int dw)
         dws = "Martes";
         break;
     case 3:
-        dws = "Miércoles";
+        dws = "Miercoles";
         break;
     case 4:
         dws = "Jueves";

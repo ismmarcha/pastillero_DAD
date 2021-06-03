@@ -8,7 +8,7 @@ void servoSetup(int giroInicial1, int giroInicial2)
   servo1.attach(2); //Pin D4
   servo1.write(giroInicial1);
 
-  servo2.attach(3); //DEBO COMPROBARLO
+  servo2.attach(0); //D3 DEBO COMPROBARLO
   servo2.write(giroInicial2);
 }
 

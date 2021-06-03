@@ -5,6 +5,8 @@
 #include <ArduinoJson.h>       //JSON
 #include <TimeLib.h>           //TIME INTERNET
 #include <StringSplitter.h>    //
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 #include <rest.h>
 #include <servo_personal.h>
@@ -14,8 +16,10 @@
 #include <buzzer.h>
 #include <lcd_personal.h>
 
-const char *ssid = "MOVISTAR_072E";
-const char *password = "X8Z3J2Jptc6vAkZYRsan";
+//const char *ssid = "MOVISTAR_072E";
+//const char *password = "X8Z3J2Jptc6vAkZYRsan";
+const char *ssid = "mi11lite";
+const char *password = "12345678";
 const int portHttp = 8083;
 const int portMqtt = 1883;
 const byte hashLen = 20; /* 256-bit */
@@ -29,9 +33,13 @@ int giroInicial = 0;
 
 WiFiClient espWifiClient1;
 WiFiClient espWifiClient2;
-IPAddress server(192, 168, 1, 10);
+//IPAddress server(192, 168, 1, 10);
+// 192.168.202.82
+IPAddress server(192, 168, 202, 82);
 PubSubClient mqttClient(espWifiClient1);
 HttpClient httpClient = HttpClient(espWifiClient2, server, portHttp);
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 2 * 3600, 60000);
 DynamicJsonDocument listaDosis(4096);
 DynamicJsonDocument siguienteDosis(256);
 
@@ -39,13 +47,7 @@ void comprobarSiguienteDosis();
 
 void setupTime()
 {
-  configTime(2 * 3600, 0, "pool.ntp.org", "time.nist.gov");
-  Serial.println("\nWaiting for time");
-  while (!time(nullptr))
-  {
-    Serial.print(".");
-    delay(1000);
-  }
+  timeClient.begin();
 }
 
 void setupWifi()
@@ -142,7 +144,8 @@ void mqttConnect()
       String rutaMsg = "placa/" + String(placaId);
       mqttClient.publish(rutaMsg.c_str(), "");
       mqttClient.subscribe(String(rutaMsg + "/actuDosis").c_str());
-      mqttClient.subscribe(String(rutaMsg + "/statusGiro").c_str());
+      mqttClient.subscribe(String(rutaMsg + "/statusGiro1").c_str());
+      mqttClient.subscribe(String(rutaMsg + "/statusGiro2").c_str());
     }
     else
     {
@@ -160,7 +163,8 @@ void callbackMqtt(char *topic, byte *payload, unsigned int length)
   Serial.print(topic);
   Serial.print(F("] "));
   String rutaActuDosis = "placa/" + String(placaId) + "/actuDosis";
-  String rutaStatusGiro = "placa/" + String(placaId) + "/statusGiro";
+  String rutaStatusGiro1 = "placa/" + String(placaId) + "/statusGiro1";
+  String rutaStatusGiro2 = "placa/" + String(placaId) + "/statusGiro2";
   String topicStr = String(topic);
   String res;
   if (topicStr.equals(rutaActuDosis))
@@ -178,7 +182,7 @@ void callbackMqtt(char *topic, byte *payload, unsigned int length)
       comprobarSiguienteDosis();
     }
   }
-  if (topicStr.equals(rutaStatusGiro))
+  if (topicStr.equals(rutaStatusGiro1))
   {
     for (unsigned int i = 0; i < length; i++)
     {
@@ -186,6 +190,15 @@ void callbackMqtt(char *topic, byte *payload, unsigned int length)
     }
     giroInicial = res.toInt();
     servo1Write(giroInicial);
+  }
+
+  if (topicStr.equals(rutaStatusGiro2))
+  {
+    for (unsigned int i = 0; i < length; i++)
+    {
+      res += (char)payload[i];
+    }
+    servo2Write(res.toInt());
   }
 }
 
@@ -197,39 +210,43 @@ void mqttSetup()
 
 void mostrarHora()
 {
-  time_t now = time(nullptr);
+  /*time_t now = time(nullptr);
   struct tm *timeinfo;
   time(&now);
   timeinfo = localtime(&now);
-  int hora = timeinfo->tm_hour;
-  int minuto = timeinfo->tm_min;
-  int segundo = timeinfo->tm_sec;
+  int horaMostrar = timeinfo->tm_hour;
+  int minutoMostrar = timeinfo->tm_min;
+  int segundoMostrar = timeinfo->tm_sec;*/
+  timeClient.update();
+  int horaMostrar = timeClient.getHours();
+  int minutoMostrar = timeClient.getMinutes();
+  int segundoMostrar = timeClient.getSeconds();
   String horaStr = "";
   String minutoStr = "";
   String segundoStr = "";
-  if (hora < 10)
+  if (horaMostrar < 10)
   {
-    horaStr = "0" + String(hora);
+    horaStr = "0" + String(horaMostrar);
   }
   else
   {
-    horaStr = String(hora);
+    horaStr = String(horaMostrar);
   }
-  if (minuto < 10)
+  if (minutoMostrar < 10)
   {
-    minutoStr = "0" + String(minuto);
-  }
-  else
-  {
-    minutoStr = String(minuto);
-  }
-  if (segundo < 10)
-  {
-    segundoStr = "0" + String(segundo);
+    minutoStr = "0" + String(minutoMostrar);
   }
   else
   {
-    segundoStr = String(segundo);
+    minutoStr = String(minutoMostrar);
+  }
+  if (segundoMostrar < 10)
+  {
+    segundoStr = "0" + String(segundoMostrar);
+  }
+  else
+  {
+    segundoStr = String(segundoMostrar);
   }
   writeLCD(horaStr + ":" + minutoStr + ":" + segundoStr, 1, 1);
 }
@@ -261,7 +278,7 @@ void comprBuzzer()
 void comprobarSiguienteDosis()
 {
   //NECESITO CAMBIAR LA FECHA ACTUAL A 00:00 PARA PODER AÑADIR BIEN LA FECHA, MIRAR DETENIDAMENTE SI SE MIDE EN SEGUNDOS O MILI
-  long menorTiempo = time(nullptr) + 3600 * 24 * 8;
+  long menorTiempo = timeClient.getEpochTime() + 3600 * 24 * 31;
   DynamicJsonDocument dosisMasCercana(256);
   for (JsonObject elem : listaDosis.as<JsonArray>())
   {
@@ -275,16 +292,13 @@ void comprobarSiguienteDosis()
     horaApi = (splitter->getItemAtIndex(0)).toInt();
     minutoApi = (splitter->getItemAtIndex(1)).toInt();
     secondsToNextDay = 3600 * horaApi + 60 * minutoApi;
-    time_t fechaActual = time(nullptr);
-    struct tm *fechaActualInfo;
-    time(&fechaActual);
-    fechaActualInfo = localtime(&fechaActual);
-    int hora = fechaActualInfo->tm_hour;
-    int minuto = fechaActualInfo->tm_min;
-    int segundo = fechaActualInfo->tm_sec;
+    time_t fechaActual = timeClient.getEpochTime();
+    int horaAct = timeClient.getHours();
+    int minutoAct = timeClient.getMinutes();
+    int segundoAct = timeClient.getSeconds();
     //int dayW = fechaActualInfo->tm_wday;
-    time_t fechaActualBase = fechaActual - (hora * 3600 + minuto * 60) - segundo; //Reseteamos la fecha actual a las 00:00 para facilitar calculos
-    int diaWActual = fechaActualInfo->tm_wday;
+    time_t fechaActualBase = fechaActual - (horaAct * 3600 + minutoAct * 60) - segundoAct; //Reseteamos la fecha actual a las 00:00 para facilitar calculos
+    int diaWActual = timeClient.getDay();
     if (diaWActual <= dia_semana)
     {
       dias_restantes = dia_semana - diaWActual;
@@ -300,8 +314,8 @@ void comprobarSiguienteDosis()
       fechaApi += 3600 * 24 * 7;
     }
     struct tm *fechaApiInfo = localtime(&fechaApi);
-    hora = fechaApiInfo->tm_hour;
-    minuto = fechaApiInfo->tm_min;
+    horaAct = fechaApiInfo->tm_hour;
+    minutoAct = fechaApiInfo->tm_min;
     //dayW = fechaApiInfo->tm_wday;
     //int fechaDia = fechaApiInfo->tm_mday;
     /*Serial.println("Fecha base");
@@ -325,17 +339,19 @@ void comprobarSiguienteDosis()
   siguienteDosis["dia_semana"] = dia_semana_dosis;
   siguienteDosis["hora_inicio"] = hora_inicio_dosis;
   siguienteDosis["segundosFecha"] = fecha_dosis;
-  clearLCDLine(1);
+  clearLCDLine(3);
   writeLCD(intToStringDiaSemana(dia_semana_dosis) + "->" + hora_inicio_dosis, 1, 3);
 }
 
 void comprobarSiTocaDosis()
 {
   time_t fechaSiguienteDosis = siguienteDosis["segundosFecha"];
-  time_t fechaActualSiToca = time(nullptr);
+  time_t fechaActualSiToca = timeClient.getEpochTime();
   if (fechaActualSiToca >= fechaSiguienteDosis)
   {
-    String rutaStatusGiro = "placa/" + String(placaId) + "/statusGiro";
+    String rutaStatusGiro1 = "placa/" + String(placaId) + "/statusGiro1";
+    String rutaStatusGiro2 = "placa/" + String(placaId) + "/statusGiro2";
+
     Serial.println("Ha llegado la hora");
     int readServo = servo1Read();
     if (readServo >= 180)
@@ -348,7 +364,7 @@ void comprobarSiTocaDosis()
       readServo += 45;
       //servo1Write(readServo + 45);
     }
-    mqttClient.publish(rutaStatusGiro.c_str(), String(readServo).c_str(), true);
+    mqttClient.publish(rutaStatusGiro1.c_str(), String(readServo).c_str(), true);
     comprobarSiguienteDosis();
     banderaBuzzer = true;
     tiempoBuzzer = millis();
@@ -356,10 +372,11 @@ void comprobarSiTocaDosis()
   }
 }
 
-void mostrarTemperatura(){
+void mostrarTemperatura()
+{
   sensors_event_t temp;
   temp = mpuTemperatura();
-  writeLCD(String(temp.temperature / 10), 13, 0);
+  writeLCD(String(temp.temperature), 13, 0);
 }
 void setup()
 {
@@ -367,22 +384,23 @@ void setup()
   Serial.begin(9600);
 
   setupWifi();
+  delay(1000);
+  setupTime();
   buzzerSetup();
   checkI2CAddresses();
   mqttSetup();
   mpuSetup();
   setupLCD();
 
-  writeLCD("Hora actual:", 1, 0);
-  writeLCD("Hora dosis: ", 1, 2);
   mqttConnect();
-  mqttClient.loop();
-  servoSetup(giroInicial, 0);
+  servoSetup(0, 0);
   mpuTest();
   registrarPlaca();
+  writeLCD("Hora actual:", 1, 0);
+  writeLCD("Hora dosis: ", 1, 2);
   obtenerCitas();
+  mostrarHora();
   comprobarSiguienteDosis();
-  delay(2000);
 }
 
 void loop()
@@ -400,11 +418,10 @@ void loop()
   mqttClient.loop();
 
   mostrarHora();
-  
+
   mostrarTemperatura();
 
   comprBuzzer();
 
   comprobarSiTocaDosis();
-
 }
