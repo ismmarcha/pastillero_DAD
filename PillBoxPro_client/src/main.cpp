@@ -16,10 +16,8 @@
 #include <buzzer.h>
 #include <lcd_personal.h>
 
-//const char *ssid = "MOVISTAR_072E";
-//const char *password = "X8Z3J2Jptc6vAkZYRsan";
-const char *ssid = "mi11lite";
-const char *password = "12345678";
+const char *ssid = "MOVISTAR_072E";
+const char *password = "X8Z3J2Jptc6vAkZYRsan";
 const int portHttp = 8083;
 const int portMqtt = 1883;
 const byte hashLen = 20; /* 256-bit */
@@ -30,18 +28,18 @@ byte hashMac[hashLen];
 long tiempoBuzzer = 0;
 bool banderaBuzzer = false;
 int giroInicial = 0;
+float accelXAnterior = 0;
 
 WiFiClient espWifiClient1;
 WiFiClient espWifiClient2;
-//IPAddress server(192, 168, 1, 10);
-// 192.168.202.82
-IPAddress server(192, 168, 202, 82);
+IPAddress server(192, 168, 1, 10);
 PubSubClient mqttClient(espWifiClient1);
 HttpClient httpClient = HttpClient(espWifiClient2, server, portHttp);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 2 * 3600, 60000);
-DynamicJsonDocument listaDosis(4096);
 DynamicJsonDocument siguienteDosis(256);
+DynamicJsonDocument docListaDosis(2048);
+JsonArray listaDosis = docListaDosis.as<JsonArray>();
 
 void comprobarSiguienteDosis();
 
@@ -210,13 +208,6 @@ void mqttSetup()
 
 void mostrarHora()
 {
-  /*time_t now = time(nullptr);
-  struct tm *timeinfo;
-  time(&now);
-  timeinfo = localtime(&now);
-  int horaMostrar = timeinfo->tm_hour;
-  int minutoMostrar = timeinfo->tm_min;
-  int segundoMostrar = timeinfo->tm_sec;*/
   timeClient.update();
   int horaMostrar = timeClient.getHours();
   int minutoMostrar = timeClient.getMinutes();
@@ -251,36 +242,51 @@ void mostrarHora()
   writeLCD(horaStr + ":" + minutoStr + ":" + segundoStr, 1, 1);
 }
 
+bool movimientoMpu()
+{
+  float accelXActual = mpuAccel().acceleration.v[0];
+
+  if (abs(accelXActual) > 3)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
 void comprBuzzer()
 {
   if (banderaBuzzer == true)
   {
     long tiempoPasado = millis() - tiempoBuzzer;
-    if (tiempoPasado >= 10000)
+    if ((tiempoPasado / 1000) % 2 == 0)
     {
-      banderaBuzzer = false;
-      buzzerOff();
+      buzzerOn();
     }
     else
     {
-      if ((tiempoPasado / 1000) % 2 == 0)
-      {
-        buzzerOn();
-      }
-      else
-      {
-        buzzerOff();
-      }
+      buzzerOff();
+    }
+
+    if (movimientoMpu())
+    {
+      banderaBuzzer = false;
+      buzzerOff();
     }
   }
 }
 
 void comprobarSiguienteDosis()
 {
-  //NECESITO CAMBIAR LA FECHA ACTUAL A 00:00 PARA PODER AÑADIR BIEN LA FECHA, MIRAR DETENIDAMENTE SI SE MIDE EN SEGUNDOS O MILI
-  long menorTiempo = timeClient.getEpochTime() + 3600 * 24 * 31;
   DynamicJsonDocument dosisMasCercana(256);
-  for (JsonObject elem : listaDosis.as<JsonArray>())
+  long menorTiempo = timeClient.getEpochTime() + 3600 * 24 * 31;
+  if (listaDosis.size() == 0)
+  {
+    dosisMasCercana["segundosFecha"] = -1;
+  }
+  for (JsonObject elem : listaDosis)
   {
     int dia_semana = elem["dia_semana"];           // 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 3, 4, 5, 6, 1, 2, 2, 6, 1, ...
     const char *hora_inicio = elem["hora_inicio"]; // "10:00", "10:00", "10:00", "10:00", "10:00", "10:00", ...
@@ -318,10 +324,8 @@ void comprobarSiguienteDosis()
     minutoAct = fechaApiInfo->tm_min;
     //dayW = fechaApiInfo->tm_wday;
     //int fechaDia = fechaApiInfo->tm_mday;
-    /*Serial.println("Fecha base");
-    Serial.println(String(hora) + ":" + String(minuto) + " W: " + String(dayW) + " DIA MES: " + String(fechaDia));
     Serial.println("Fecha API");
-    Serial.println(String(horaApi) + ":" + String(minutoApi) + " W: " + String(dia_semana));*/
+    Serial.println(String(horaApi) + ":" + String(minutoApi) + " W: " + String(dia_semana));
     if (fechaApi <= menorTiempo)
     {
       menorTiempo = fechaApi;
@@ -334,8 +338,6 @@ void comprobarSiguienteDosis()
   int dia_semana_dosis = dosisMasCercana["dia_semana"];
   String hora_inicio_dosis = dosisMasCercana["hora_inicio"];
   time_t fecha_dosis = dosisMasCercana["segundosFecha"];
-  /*Serial.println("DOSIS MAS CERCANA");
-  Serial.println(String(dia_semana_dosis) + "->" + String(hora_inicio_dosis));*/
   siguienteDosis["dia_semana"] = dia_semana_dosis;
   siguienteDosis["hora_inicio"] = hora_inicio_dosis;
   siguienteDosis["segundosFecha"] = fecha_dosis;
@@ -347,12 +349,12 @@ void comprobarSiTocaDosis()
 {
   time_t fechaSiguienteDosis = siguienteDosis["segundosFecha"];
   time_t fechaActualSiToca = timeClient.getEpochTime();
-  if (fechaActualSiToca >= fechaSiguienteDosis)
+  if (fechaActualSiToca >= fechaSiguienteDosis && fechaSiguienteDosis > 0)
   {
+    Serial.println("Ha llegado la hora");
     String rutaStatusGiro1 = "placa/" + String(placaId) + "/statusGiro1";
     String rutaStatusGiro2 = "placa/" + String(placaId) + "/statusGiro2";
 
-    Serial.println("Ha llegado la hora");
     int readServo = servo1Read();
     if (readServo >= 180)
     {
@@ -378,11 +380,15 @@ void mostrarTemperatura()
   temp = mpuTemperatura();
   writeLCD(String(temp.temperature), 13, 0);
 }
+
 void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(9600);
 
+  setupLCD();
+  writeLCD("PILLBOX PRO", 1, 0);
+  writeLCD("CARGANDO...", 1, 2);
   setupWifi();
   delay(1000);
   setupTime();
@@ -390,15 +396,16 @@ void setup()
   checkI2CAddresses();
   mqttSetup();
   mpuSetup();
-  setupLCD();
 
   mqttConnect();
   servoSetup(0, 0);
   mpuTest();
   registrarPlaca();
+  obtenerCitas();
+  clearLCDLine(0);
+  clearLCDLine(2);
   writeLCD("Hora actual:", 1, 0);
   writeLCD("Hora dosis: ", 1, 2);
-  obtenerCitas();
   mostrarHora();
   comprobarSiguienteDosis();
 }
@@ -417,11 +424,12 @@ void loop()
   }
   mqttClient.loop();
 
-  mostrarHora();
+  //mostrarHora();
 
-  mostrarTemperatura();
+  //mostrarTemperatura();
 
   comprBuzzer();
 
   comprobarSiTocaDosis();
+
 }
