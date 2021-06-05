@@ -18,8 +18,8 @@
 
 //const char *ssid = "MOVISTAR_072E";
 //const char *password = "X8Z3J2Jptc6vAkZYRsan";
-const char *ssid = "mi11lite";
-const char *password = "12345678";
+const char *ssid = "ADAMO-9634";
+const char *password = "D3DUFAFZJTT35S";
 const int portHttp = 8083;
 const int portMqtt = 1883;
 const byte hashLen = 20; /* 256-bit */
@@ -35,7 +35,7 @@ WiFiClient espWifiClient1;
 WiFiClient espWifiClient2;
 //IPAddress server(192, 168, 1, 10);
 // 192.168.202.82
-IPAddress server(192, 168, 202, 82);
+IPAddress server(192, 168, 1, 177);
 PubSubClient mqttClient(espWifiClient1);
 HttpClient httpClient = HttpClient(espWifiClient2, server, portHttp);
 WiFiUDP ntpUDP;
@@ -313,6 +313,7 @@ void comprobarSiguienteDosis()
     {
       fechaApi += 3600 * 24 * 7;
     }
+
     struct tm *fechaApiInfo = localtime(&fechaApi);
     horaAct = fechaApiInfo->tm_hour;
     minutoAct = fechaApiInfo->tm_min;
@@ -352,7 +353,6 @@ void comprobarSiTocaDosis()
     String rutaStatusGiro1 = "placa/" + String(placaId) + "/statusGiro1";
     String rutaStatusGiro2 = "placa/" + String(placaId) + "/statusGiro2";
 
-    Serial.println("Ha llegado la hora");
     int readServo = servo1Read();
     if (readServo >= 180)
     {
@@ -424,4 +424,6 @@ void loop()
   comprBuzzer();
 
   comprobarSiTocaDosis();
+
+  //servoTest();
 }
