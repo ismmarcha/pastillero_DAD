@@ -14,12 +14,12 @@ void servoSetup(int giroInicial1, int giroInicial2)
 
 void servoTest()
 {
-  for (int i = 0; i < 180; i++)
-  {
-    servo1.write(i);
-    Serial.println(i);
-    delay(100);
-  }
+ // for (int i = 0; i < 180; i++)
+  //{
+    servo1.write(0);
+    //Serial.println(i);
+    //delay(100);
+ // }
 }
 
 void servo1Write(int angle){
