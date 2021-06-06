@@ -16,8 +16,8 @@
 #include <buzzer.h>
 #include <lcd_personal.h>
 
-const char *ssid = "MOVISTAR_072E";
-const char *password = "X8Z3J2Jptc6vAkZYRsan";
+const char *ssid = "ADAMO-9634";
+const char *password = "D3DUFAFZJTT35S";
 const int portHttp = 8083;
 const int portMqtt = 1883;
 const byte hashLen = 20; /* 256-bit */
@@ -32,7 +32,7 @@ float accelXAnterior = 0;
 
 WiFiClient espWifiClient1;
 WiFiClient espWifiClient2;
-IPAddress server(192, 168, 1, 10);
+IPAddress server(192, 168, 1, 179);
 PubSubClient mqttClient(espWifiClient1);
 HttpClient httpClient = HttpClient(espWifiClient2, server, portHttp);
 WiFiUDP ntpUDP;
@@ -239,14 +239,15 @@ void mostrarHora()
   {
     segundoStr = String(segundoMostrar);
   }
-  writeLCD(horaStr + ":" + minutoStr + ":" + segundoStr, 1, 1);
+  writeLCD(horaStr + ":" + minutoStr + ":" + segundoStr, 3, 1);
 }
 
 bool movimientoMpu()
 {
   float accelXActual = mpuAccel().acceleration.v[0];
+  float accelYActual = mpuAccel().acceleration.v[1];
 
-  if (abs(accelXActual) > 3)
+  if (abs(accelXActual) > 1.5 or abs(accelYActual) > 1.5)
   {
     return true;
   }
@@ -324,8 +325,6 @@ void comprobarSiguienteDosis()
     minutoAct = fechaApiInfo->tm_min;
     //dayW = fechaApiInfo->tm_wday;
     //int fechaDia = fechaApiInfo->tm_mday;
-    Serial.println("Fecha API");
-    Serial.println(String(horaApi) + ":" + String(minutoApi) + " W: " + String(dia_semana));
     if (fechaApi <= menorTiempo)
     {
       menorTiempo = fechaApi;
@@ -342,7 +341,7 @@ void comprobarSiguienteDosis()
   siguienteDosis["hora_inicio"] = hora_inicio_dosis;
   siguienteDosis["segundosFecha"] = fecha_dosis;
   clearLCDLine(3);
-  writeLCD(intToStringDiaSemana(dia_semana_dosis) + "->" + hora_inicio_dosis, 1, 3);
+  writeLCD(intToStringDiaSemana(dia_semana_dosis) + "->" + hora_inicio_dosis, 3, 3);
 }
 
 void comprobarSiTocaDosis()
@@ -378,7 +377,7 @@ void mostrarTemperatura()
 {
   sensors_event_t temp;
   temp = mpuTemperatura();
-  writeLCD(String(temp.temperature), 13, 0);
+  writeLCD(String(temp.temperature,1), 15, 0);
 }
 
 void setup()
@@ -387,8 +386,8 @@ void setup()
   Serial.begin(9600);
 
   setupLCD();
-  writeLCD("PILLBOX PRO", 1, 0);
-  writeLCD("CARGANDO...", 1, 2);
+  writeLCD("PILLBOX PRO", 4, 0);
+  writeLCD("CARGANDO...", 4, 2);
   setupWifi();
   delay(1000);
   setupTime();
@@ -404,8 +403,10 @@ void setup()
   obtenerCitas();
   clearLCDLine(0);
   clearLCDLine(2);
-  writeLCD("Hora actual:", 1, 0);
-  writeLCD("Hora dosis: ", 1, 2);
+  writeLCD("Hora:", 0, 0);
+  writeLCD("Sig. Dosis: ", 0, 2);
+  writeLCD("C", 19, 0);
+  writeLCD("T:", 13, 0);
   mostrarHora();
   comprobarSiguienteDosis();
 }
@@ -424,9 +425,10 @@ void loop()
   }
   mqttClient.loop();
 
-  //mostrarHora();
+  mostrarHora();
 
-  //mostrarTemperatura();
+  mostrarTemperatura();
+  
 
   comprBuzzer();
 

@@ -57,7 +57,7 @@ String intToStringDiaSemana(int dw)
         dws = "Viernes";
         break;
     case 6:
-        dws = "Sábado";
+        dws = "Sabado";
         break;
 
     default:

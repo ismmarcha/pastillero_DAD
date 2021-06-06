@@ -1,13 +1,13 @@
 use pastillero_dad;
 
-insert into Pastillero (id_pastillero , alias) values ('w1e2d4f5ffeecnss3fpol247hg7fg1244423435g',"Pastillero Tío Salvador");
+insert into Pastillero (id_pastillero , alias) values ('a8df25211e38f106b2602c3cb5da01c66616160a',"Pastillero Tío Salvador");
 insert into Pastillero (id_pastillero , alias) values ('f1e5d4fyr83djwi2o3o3e247hg7fg1211420135g',"Pastillero Abuelo Paco");
 
 
-insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol) values ("45349133D","w1e2d4f5ffeecnss3fpol247hg7fg1244423435g","Ismael","Márquez Chacón","ProyectoDAD11","Ismael@DAD.es","cuidador");
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol) values ("45349133D","a8df25211e38f106b2602c3cb5da01c66616160a","Ismael","Márquez Chacón","ProyectoDAD11","Ismael@DAD.es","cuidador");
 insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol) values ("71241839J","f1e5d4fyr83djwi2o3o3e247hg7fg1211420135g","Manuel","Lorenzo Hidalgo","ProyectoDAD11","Manuel@DAD.es","cuidador");
 
-insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) values ("78130288F","w1e2d4f5ffeecnss3fpol247hg7fg1244423435g","Salvador","Márquez Palacios","Salvador22","enfermo1@DAD.es","enfermo","45349133D");
+insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) values ("78130288F","a8df25211e38f106b2602c3cb5da01c66616160a","Salvador","Márquez Palacios","Salvador22","enfermo1@DAD.es","enfermo","45349133D");
 insert into Usuario (nif,id_pastillero,firstname, lastname,contraseña, email, rol,id_cuidador) values ("53420191L","f1e5d4fyr83djwi2o3o3e247hg7fg1211420135g","Francisco","Tejano Rodríguez","TejanoRod22","enfermo2@DAD.es","enfermo","71241839J");
 
 
@@ -35,7 +35,7 @@ insert into Dosis (hora_inicio,dia_semana,nif) values ("18:00",4,"53420191L");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("20:00",5,"53420191L");
 insert into Dosis (hora_inicio,dia_semana,nif) values ("22:00",6,"53420191L");
 
-
+insert into Dosis (hora_inicio,dia_semana,nif) values ("19:44",6,"78130288F");
 
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("1","1",0.5);
 insert into Pastilla_Dosis (id_pastilla,id_dosis,cantidad) values ("3","1",0.5);
@@ -91,11 +91,11 @@ insert into Registro_Dosis (tomada,id_dosis) values (FALSE,"14");
 
 
 SELECT COUNT(*) as nPastilleros FROM pastillero_dad.Pastillero ;
-select * from dosis;
+select * from Dosis;
 SELECT COUNT(*) as nUsuarios FROM pastillero_dad.Usuario WHERE nif = "78130288F";
 
 
-SELECT dia_semana, hora_inicio FROM Dosis JOIN pastillero_dad.Usuario ON Usuario.nif = dosis.nif WHERE id_pastillero = 'w1e2d4f5ffeecnss3fpol247hg7fg1244423435g' ORDER BY if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()))  LIMIT 1;
+SELECT dia_semana, hora_inicio FROM Dosis JOIN pastillero_dad.Usuario ON Usuario.nif = dosis.nif WHERE id_pastillero = 'a8df25211e38f106b2602c3cb5da01c66616160a' ORDER BY if(TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), TIMEDIFF(addtime(DATE_ADD(CURDATE(), INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()))  LIMIT 1;
 
 
 
@@ -104,3 +104,4 @@ INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()) < 0, TIMEDIF
  INTERVAL (7 - weekday(CURDATE())) + dia_semana DAY), hora_inicio), now()), TIMEDIFF(addtime(DATE_ADD(CURDATE(),
  INTERVAL dia_semana - weekday(CURDATE()) DAY), hora_inicio), now()))  LIMIT 1;
 
+SELECT id_pastillero FROM pastillero_dad.Usuario WHERE nif = "78130288F" ;
