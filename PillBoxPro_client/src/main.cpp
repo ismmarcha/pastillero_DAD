@@ -355,17 +355,22 @@ void comprobarSiTocaDosis()
     String rutaStatusGiro2 = "placa/" + String(placaId) + "/statusGiro2";
 
     int readServo = servo1Read();
-    if (readServo >= 180)
+    int readServo2 = servo2Read();
+    if (readServo >= 180 || readServo2 >= 180)
     {
       readServo = 0;
+      readServo2 = 0;
       //servo1Write(0);
     }
     else
     {
       readServo += 45;
+      readServo2 += 45;
       //servo1Write(readServo + 45);
     }
     mqttClient.publish(rutaStatusGiro1.c_str(), String(readServo).c_str(), true);
+    mqttClient.publish(rutaStatusGiro2.c_str(), String(readServo2).c_str(), true);
+
     comprobarSiguienteDosis();
     banderaBuzzer = true;
     tiempoBuzzer = millis();
@@ -386,8 +391,8 @@ void setup()
   Serial.begin(9600);
 
   setupLCD();
-  writeLCD("PILLBOX PRO", 4, 0);
-  writeLCD("CARGANDO...", 4, 2);
+  writeLCD("PILLBOX PRO", 4, 1);
+ // writeLCD("CARGANDO...", 4, 2);
   setupWifi();
   delay(1000);
   setupTime();
@@ -401,14 +406,14 @@ void setup()
   mpuTest();
   registrarPlaca();
   obtenerCitas();
-  clearLCDLine(0);
+ /* clearLCDLine(0);
   clearLCDLine(2);
   writeLCD("Hora:", 0, 0);
   writeLCD("Sig. Dosis: ", 0, 2);
   writeLCD("C", 19, 0);
   writeLCD("T:", 13, 0);
   mostrarHora();
-  comprobarSiguienteDosis();
+  comprobarSiguienteDosis();*/
 }
 
 void loop()
@@ -425,9 +430,9 @@ void loop()
   }
   mqttClient.loop();
 
-  mostrarHora();
+ // mostrarHora();
 
-  mostrarTemperatura();
+  //mostrarTemperatura();
   
 
   comprBuzzer();

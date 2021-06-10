@@ -1004,7 +1004,7 @@ public class BDDosis {
 		});
 	}
 
-	// EJEMPLO BODY: { "id_pastillero":"asdast34356asgasgasg" }
+	// EJEMPLO BODY: { "id_pastillero":"a8df25211e38f106b2602c3cb5da01c66616160a" }
 	public void getDosisPorPastillero() {
 		MessageConsumer<String> consumer = vertx.eventBus().consumer("getDosisPorPastillero");
 		consumer.handler(message -> {
